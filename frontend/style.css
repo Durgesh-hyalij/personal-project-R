@@ -1,0 +1,210 @@
+
+/* check all coments because i change for some reasons */
+
+/* body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+.container {
+    width: 60%;
+    margin: 50px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+}
+
+button {
+    padding: 10px 18px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Spinner *
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 5px solid #ddd;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 15px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Progress bar *
+.progress-bar {
+    width: 100%;
+    background: #eee;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+#progress {
+    height: 100%;
+    width: 0%;
+    background: #007bff;
+    transition: width 0.3s;
+}
+
+pre {
+    background: #f0f0f0;
+    padding: 15px;
+    white-space: pre-wrap;
+    border-radius: 5px;
+}
+
+/* markdown css *
+.result-box {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    line-height: 1.6;
+}
+
+.result-box h3 {
+    margin-top: 15px;
+}
+
+.result-box ul {
+    padding-left: 20px;
+}
+
+.result-box li {
+    margin-bottom: 6px;
+}
+ */
+
+
+ body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f4f7fb;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: #0d47a1;
+    color: white;
+    padding: 20px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.sidebar-menu li.active,
+.sidebar-menu li:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ---------- Main ---------- */
+#main {
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+    background: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.menu-icon {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.topbar-title {
+    font-weight: 600;
+}
+
+/* ---------- Content ---------- */
+.content {
+    max-width: 600px;
+    margin-top: 30px;
+}
+
+/* ---------- Cards ---------- */
+.app-card {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* ---------- Result Box ---------- */
+.result-box {
+    background: #f9fbff;
+    border-radius: 10px;
+    padding: 14px;
+    max-height: 260px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ---------- Loader ---------- */
+.hidden {
+    display: none;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    #main {
+        margin-left: 0;
+    }
+
+    #main.shift {
+        margin-left: 260px;
+    }
+}

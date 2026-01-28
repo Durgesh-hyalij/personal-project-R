@@ -1,0 +1,149 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Report Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Upload Medical Report (PDF)</h2>
+
+    <input type="file" id="pdfFile" accept=".pdf">
+
+    <button id="uploadBtn" onclick="uploadPDF()">Upload & Analyze</button>
+    <button><a href="welcome.html" > Go Back </a></button>
+
+    <!-- Loader ->
+    <div id="loader" class="hidden">
+        <div class="spinner"></div>
+        <p>Analyzing report, please wait...</p>
+
+        <div class="progress-bar">
+            <div id="progress"></div>
+        </div>
+    </div>
+
+    <h3>AI Explanation</h3>
+    <div id="result" class="result-box"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>    -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Report Analyzer</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <h4>🩺 Project-R</h4>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li class="active">
+            <i class="bi bi-upload"></i>
+            <span>Phase 1: Report Analysis</span>
+        </li>
+    </ul>
+    <ul class="sidebar-menu">
+        <li class="active">
+            <i class="bi bi-upload"></i>
+            <span>Phase 2: Report Analysis</span>
+        </li>
+    </ul>
+</div>
+
+<!-- Main Content -->
+<div id="main">
+
+    <!-- Top Navbar -->
+    <div class="topbar">
+        <i class="bi bi-list menu-icon" onclick="toggleSidebar()"></i>
+        <span class="topbar-title">Medical Report Analyzer</span>
+    </div>
+
+    <!-- Content -->
+    <div class="content container">
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Upload Medical Report</h2>
+            <p class="text-muted">
+                Get a simple, patient-friendly explanation of your test results
+            </p>
+        </div>
+
+        <!-- Upload Card -->
+        <div class="card app-card mb-4">
+            <div class="card-body">
+                <label class="form-label fw-semibold" for="pdfFile">
+                    Select Medical Report (PDF)
+                </label>
+
+                <input type="file" id="pdfFile" accept=".pdf" class="form-control mb-3">
+
+                <button id="uploadBtn" class="btn btn-primary w-100" onclick="uploadPDF()">
+                    Analyze Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="card app-card text-center hidden mb-4">
+            <div class="card-body">
+                <div class="spinner-border text-primary mb-3"></div>
+                <p>Analyzing report, please wait…</p>
+
+                <div class="progress">
+                    <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="card app-card">
+            <div class="card-body">
+                <h5 class="mb-2">AI Explanation</h5>
+                <div id="result" class="result-box">
+                    <span class="text-muted">
+                        Upload a report to view explanation here.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Script -->
+<script>
+function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("main").classList.toggle("shift");
+}
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
