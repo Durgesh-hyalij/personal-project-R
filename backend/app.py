@@ -4,6 +4,8 @@ from PyPDF2 import PdfReader
 import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
+from models import init_db, Report
+from flask_sqlalchemy import SQLAlchemy
 
 USE_AI = False   # 🔴 Turn OFF AI for development
 
@@ -12,21 +14,22 @@ if USE_AI:  # Optional: load env only if AI is enabled
     load_dotenv()
 
 COHERE_API_KEY = os.getenv('API_URL')
-# ---------------- CONFIG ----------------
 UPLOAD_FOLDER = "Backend/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
 
-# COHERE_API_KEY = "COHERE_API_KEY"
-# Create client ONLY if AI is enabled
+
+# Create client ONLY if AI is enabled # COHERE_API_KEY = "COHERE_API_KEY"
 co = None
 if USE_AI and COHERE_API_KEY:
     co = cohere.Client(COHERE_API_KEY)
 
-# ---------------- APP ----------------
 app = Flask(__name__)
 CORS(app)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_demo.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# init_db(app)
 
 def extract_text_from_pdf(pdf_path):  # Iterates through all PDF pages to extract and combine their text into a single string
     reader = PdfReader(pdf_path)
@@ -73,18 +76,6 @@ def upload_report():
         if not extracted_text:
             return jsonify({"error": "No text extracted from PDF"}), 500
 
-        # ✅ CORRECT COHERE CHAT CALL (STRING, NOT ARRAY)
-        # response = co.chat(
-        #     model="c4ai-aya-expanse-32b",
-        #     message=(
-        #         "You are a medical assistant. "
-        #         "Explain the following medical report in very simple, patient-friendly language. "
-        #         "Also mention if any values look abnormal.\n\n"
-        #         f"{extracted_text}"
-        #     ),
-        #     temperature=0.3
-        # )
-
         if USE_AI:
             response = co.chat(
                 model="c4ai-aya-expanse-32b",
@@ -115,4 +106,5 @@ def upload_report():
 
 
 if __name__ == "__main__":
+    init_db(app)
     app.run(debug=True)
