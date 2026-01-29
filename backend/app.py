@@ -4,7 +4,7 @@ from PyPDF2 import PdfReader
 import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
-from models import init_db, Report
+from models import db, init_db, Report
 from flask_sqlalchemy import SQLAlchemy
 
 USE_AI = True   # 🔴 Turn OFF AI for development
@@ -29,7 +29,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_demo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# init_db(app)
 
 def extract_text_from_pdf(pdf_path):  # Iterates through all PDF pages to extract and combine their text into a single string
     reader = PdfReader(pdf_path)
@@ -94,7 +93,15 @@ def upload_report():
                 "Extracted PDF text preview:\n\n"
                 + extracted_text[:1500]
             )
-
+        # 1. Create the entry
+        new_report = Report(
+            extracted_text=extracted_text,
+            pdf_path=path,
+            ai_summary=ai_output
+        )
+        db.session.add(new_report)
+        db.session.commit()
+            
         return jsonify({
             "status": "success",
             "ai_response": ai_output
