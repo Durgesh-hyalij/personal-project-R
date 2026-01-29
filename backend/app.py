@@ -7,7 +7,7 @@ from dotenv import load_dotenv  # Load .env file
 from models import init_db, Report
 from flask_sqlalchemy import SQLAlchemy
 
-USE_AI = False   # 🔴 Turn OFF AI for development
+USE_AI = True   # 🔴 Turn OFF AI for development
 
 # Load environment variables from .env file
 if USE_AI:  # Optional: load env only if AI is enabled
