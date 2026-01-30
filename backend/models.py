@@ -15,7 +15,7 @@ class Report(db.Model):
     id = db.Column(db.Integer , primary_key = True)
     extracted_text = db.Column(db.String(1000) , nullable = False)
     pdf_path = db.Column(db.String(1000) , nullable = False)
-    ai_summary = db.Column(db.Text)
+    ai_summary = db.Column(db.Text, nullable=True   )
     created_at = db.Column(db.DateTime, default=db.func.now())
     #foreign key    
     patiend_id = db.Column(db.Integer, db.ForeignKey('patient.id') ,nullable = True )

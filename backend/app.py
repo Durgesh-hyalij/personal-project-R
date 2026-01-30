@@ -6,6 +6,7 @@ import cohere
 from dotenv import load_dotenv  # Load .env file
 from models import db, init_db, Report
 from flask_sqlalchemy import SQLAlchemy
+from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -57,6 +58,44 @@ def test():
         "preview": text[:1000]
     })
 
+@app.route("/history", methods=["GET"])
+def get_report_history():
+    reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
+
+    history_list = []
+
+    for report in reports:
+        history_list.append({
+            "id": report.id,
+            "pdf_name": report.pdf_path.split("/")[-1],
+            "created_at": report.created_at.strftime("%Y-%m-%d %H:%M"),
+            "has_ai_summary": True if report.ai_summary else False
+        })
+
+    return jsonify({
+        "success": True,
+        "count": len(history_list),
+        "data": history_list
+    })
+
+@app.route("/history/<int:report_id>", methods=["GET"])
+def get_single_report(report_id):
+    report = Report.query.get(report_id)
+
+    if not report:
+        return jsonify({
+            "success": False,
+            "message": "Report not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "data": {
+            "extracted_text": report.extracted_text,
+            "ai_summary": report.ai_summary
+        }
+    })
+
 
 @app.route("/upload-report", methods=["POST"])
 def upload_report():
@@ -78,22 +117,23 @@ def upload_report():
         if USE_AI:
             response = co.chat(
                 model="c4ai-aya-expanse-32b",
-                message=(
-                    "You are a medical assistant. "
-                    "Explain the following medical report in very simple language.\n\n"
-                    f"{extracted_text}"
-                ),
+                # message=(
+                #     "You are a medical assistant. "
+                #     "Explain the following medical report in very simple language.\n\n"
+                #     f"{extracted_text}"
+                # ),
+                message = build_medical_prompt(extracted_text[:6000]),
                 temperature=0.3
             )
             ai_output = response.text    # Extracts the plain text answer from the AI's full response object
                                     # response.text -> this response come from the above response = co.chat)...)
         else:
-            ai_output = (
+            ai_output = (   
                 "🔧 AI is disabled (development mode).\n\n"
                 "Extracted PDF text preview:\n\n"
                 + extracted_text[:1500]
             )
-        # 1. Create the entry
+        # 1. Create the entry for database
         new_report = Report(
             extracted_text=extracted_text,
             pdf_path=path,

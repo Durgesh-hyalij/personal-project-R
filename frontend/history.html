@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Report History</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+  }
+
+  .layout {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* LEFT SIDEBAR */
+  .sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .sidebar h3 {
+    margin: 10px 0;
+  }
+
+  .report-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #eee;
+  }
+
+  .report-item:hover,
+  .report-item.active {
+    background: #e8f0ff;
+  }
+
+  /* CENTER + RIGHT PANELS */
+  .panel {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  .panel h3 {
+    margin-top: 0;
+  }
+
+  .content-box {
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    white-space: pre-wrap;
+    min-height: 85%;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <div class="sidebar" id="reportList">
+    <h3>Reports</h3>
+  </div>
+
+  <!-- CENTER -->
+  <div class="panel">
+    <h3>Extracted Text</h3>
+    <div id="extractedText" class="content-box">
+      Hello!!! please select the side history to view your report deail 
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel">
+    <h3>AI Summary</h3>
+    <div id="aiSummary" class="content-box">
+      Hello!!! please select the side history to view your AI deails
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const reportList = document.getElementById("reportList");
+  const extractedTextDiv = document.getElementById("extractedText");
+  const aiSummaryDiv = document.getElementById("aiSummary");
+
+  // Load report list
+  fetch("http://127.0.0.1:5000/history")  // fetch = “Go to backend and ask for data”
+    .then(res => res.json())   //res = response from backend
+    .then(data => {
+      data.data.forEach(report => {
+        const div = document.createElement("div");
+        div.className = "report-item";  
+        div.innerHTML = `
+          <strong>${report.pdf_name}</strong><br>
+          <small>${report.created_at}</small>
+        `;
+        div.onclick = () => loadReport(report.id, div);
+        reportList.appendChild(div);   // Now the div is finally added to the to the sidebar whose id is reportList.
+      });
+    });
+
+  function loadReport(id, element) {
+    document.querySelectorAll(".report-item")
+      .forEach(i => i.classList.remove("active"));
+    element.classList.add("active");
+
+    fetch(`http://127.0.0.1:5000/history/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        extractedTextDiv.textContent = data.data.extracted_text;
+        aiSummaryDiv.textContent =
+          data.data.ai_summary || "No AI summary available";
+      });
+  }
+</script>
+
+</body>
+</html>

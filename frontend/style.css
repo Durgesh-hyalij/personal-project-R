@@ -1,7 +1,7 @@
 
 /* check all coments because i change for some reasons */
 
-/* body {
+ /* body {
     font-family: Arial, sans-serif;
     background: #f4f6f8;
 }
@@ -88,18 +88,18 @@ pre {
 
 .result-box li {
     margin-bottom: 6px;
-}
- */
+} */
+ 
 
 
- body {
+ /* body {
     margin: 0;
     font-family: "Segoe UI", sans-serif;
     background: #f4f7fb;
-}
+} */
 
-/* ---------- Sidebar ---------- */
-/* .sidebar {
+/*---------- Sidebar ---------- */
+.sidebar {
     position: fixed;
     top: 0;
     left: 0;
@@ -134,7 +134,7 @@ pre {
 .sidebar-menu li.active,
 .sidebar-menu li:hover {
     background: rgba(255,255,255,0.15);
-} */
+}
 
 /* ---------- Main ---------- */
 #main {

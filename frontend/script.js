@@ -82,7 +82,8 @@ async function uploadPDF() {
         if (data.error) {
             result.textContent = data.error;
         } else {
-            result.innerHTML = markdownToHtml(data.ai_response);
+            // result.innerHTML = markdownToHtml(data.ai_response);
+            result.innerHTML = marked.parse(data.ai_response);
         }
 
     } catch (error) {
@@ -98,16 +99,16 @@ async function uploadPDF() {
     }, 600);
 
 
-    function markdownToHtml(text) {
-    return text
-        // Headings
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        // Bullet points
-        .replace(/^\* (.*)$/gm, "<li>$1</li>")
-        // Wrap lists
-        .replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>")
-        // Line breaks
-        .replace(/\n/g, "<br>");
-}
+//     function markdownToHtml(text) {
+//     return text
+//         // Headings
+//         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+//         // Bullet points
+//         .replace(/^\* (.*)$/gm, "<li>$1</li>")
+//         // Wrap lists
+//         .replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>")
+//         // Line breaks
+//         .replace(/\n/g, "<br>");
+// }
 
 }
