@@ -164,7 +164,9 @@ pre {
 
 /* ---------- Content ---------- */
 .content {
-    max-width: 600px;
+    /* max-width: 600px; */
+    /* margin-top: 30px; */
+    max-width: 900px;   /* wider cards */
     margin-top: 30px;
 }
 
@@ -209,3 +211,27 @@ pre {
         margin-left: 260px;
     }
 }
+
+
+/* later change css */
+/* Split layout improvements */
+
+/* Make upload card fixed while scrolling */
+.sticky-upload {
+    position: sticky;
+    top: 100px; /* below top navbar */
+}
+
+/* Increase content width to remove right empty space */
+.content {
+    max-width: 1200px;
+    margin-top: 30px;
+}
+
+/* AI explanation scroll only inside card */
+.result-box {
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+
