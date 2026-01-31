@@ -284,7 +284,7 @@
       fetch(`http://127.0.0.1:5000/history/${id}`)
         .then(res => res.json())
         .then(data => {
-          extractedTextDiv.textContent = data.data.extracted_text;   # return jsonify madhla data(app.py) chya madhla
+          extractedTextDiv.textContent = data.data.extracted_text;  //  return jsonify madhla data(app.py) chya madhla
           aiSummaryDiv.textContent = data.data.ai_summary || "No AI summary available";
 
             // Show PDF download section

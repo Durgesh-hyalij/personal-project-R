@@ -64,7 +64,6 @@ def test():
 @app.route("/history", methods=["GET"])
 def get_report_history():
     reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
-
     history_list = []
 
     for report in reports:
