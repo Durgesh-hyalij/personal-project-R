@@ -1,362 +1,306 @@
-<!--- <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Report History</title>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <title>Report History</title>
 
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+    }
 
-  .layout {
-    display: flex;
-    height: 100vh;
-  }
+    /* ---------- TOP NAVBAR (NEW) ---------- */
+    .topbar {
+      height: 60px;
+      background: #0d47a1;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
-  /* LEFT SIDEBAR */
-  .sidebar {
-    width: 280px;
-    background: #ffffff;
-    border-right: 1px solid #ddd;
-    padding: 10px;
-    overflow-y: auto;
-  }
+    .topbar h4 {
+      margin: 0;
+      font-size: 18px;
+    }
 
-  .sidebar h3 {
-    margin: 10px 0;
-  }
+    .topbar span {
+      margin-left: 10px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
 
-  .report-item {
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #eee;
-  }
+    .topbar .right {
+      margin-left: auto;
+    }
 
-  .report-item:hover,
-  .report-item.active {
-    background: #e8f0ff;
-  }
+    .topbar a {
+      color: #ffffff;
+      text-decoration: none;
+      border: 1px solid #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
 
-  /* CENTER + RIGHT PANELS */
-  .panel {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-  }
+    .topbar a:hover {
+      background: rgba(255,255,255,0.15);
+    }
 
-  .panel h3 {
-    margin-top: 0;
-  }
+    /* ---------- MAIN LAYOUT ---------- */
+    .layout {
+      display: flex;
+      height: calc(100vh - 60px); /* subtract navbar height */
+    }
 
-  .content-box {
-    background: #ffffff;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    white-space: pre-wrap;
-    min-height: 85%;
-  }
-</style>
-</head>
+    /* LEFT SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      padding: 10px;
+      overflow-y: auto;
+    }
 
-<body>
+    .sidebar h3 {
+      margin: 10px 0;
+    }
 
-<div class="layout">
+    .report-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid #eee;
+    }
 
-  <!-- LEFT --/>
-  <div class="sidebar" id="reportList">
-    <h3>Reports</h3>
-  </div>
+    .report-item:hover,
+    .report-item.active {
+      background: #e8f0ff;
+    }
 
-  <!-- CENTER --/>
-  <div class="panel">
-    <h3>Extracted Text</h3>
-    <div id="extractedText" class="content-box">
-      Hello!!! please select the side history to view your report deail 
+    /* CENTER + RIGHT PANELS */
+    .panel {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .content-box {
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      min-height: 85%;
+    }
+      /* ---------- Sidebar Color Theme ---------- */
+
+    /* Sidebar background */
+    .sidebar {
+      background: #f7f9fc; /* soft medical blue-grey */
+    }
+
+    /* Report item default */
+    .report-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      transition: background 0.2s ease, border 0.2s ease;
+    }
+
+    /* Hover effect */
+    .report-item:hover {
+      background: #eef4ff;
+      border-color: #c7d8ff;
+    }
+
+    /* Active (selected) report */
+    .report-item.active {
+      background: #dbe9ff;
+      border-left: 4px solid #0d47a1; /* brand blue */
+      font-weight: 600;
+    }
+
+    /* Sidebar title */
+    .sidebar h3 {
+      color: #0d47a1;
+      font-weight: 600;
+    }
+
+    /* Optional: scrollbar styling (nice polish) */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+  </style>
+  </head>
+
+  <body>
+
+  <!-- 🔵 NAVBAR (NEW) -->
+  <div class="topbar">
+    <h4>🩺 Project-R</h4>
+    <span>[AI-Powered Medical Report Analyzer]</span>
+
+    <div class="right">
+      <a href="index.html">Home Page</a>
     </div>
+
   </div>
 
-  <!-- RIGHT --/>
-  <div class="panel">
-    <h3>AI Summary</h3>
-    <div id="aiSummary" class="content-box">
-      Hello!!! please select the side history to view your AI deails
+
+  
+  <!-- 🔹 HISTORY LAYOUT -->
+  <div class="layout">
+
+    <!-- LEFT -->
+    <div class="sidebar" id="reportList">
+      <h3>Reports</h3>
     </div>
+
+    <!-- CENTER -->
+    <div class="panel">
+      <h3>Extracted Text</h3>
+      
+      <!-- PDF ACTION BAR -->
+      <div id="pdfSection" style="
+        display:none;
+        background:#ffffff;
+        border-bottom:1px solid #ddd;
+        padding:10px 20px;
+        font-size:14px;
+        display:flex;
+        align-items:center;
+        gap:15px;
+      ">
+        📄 <strong id="pdfName"></strong>
+
+        <a id="viewPdf"
+          href="#"
+          target="_blank"
+          style="color:#0d47a1; text-decoration:none;">
+          View
+        </a>
+
+        <a id="downloadPdf"
+          href="#"
+          download
+          style="color:#0d47a1; text-decoration:none;">
+          Download
+        </a>
+      </div>
+
+      <div id="extractedText" class="content-box">
+        Hello!!! please select the side history to view your report detail
+      </div>
+    </div>
+
+    
+    <!-- RIGHT -->
+    <div class="panel">
+      <h3>AI Summary</h3>
+      <!-- PDF ACTION BAR -->
+      <div id="pdfSection" style="
+            display:none;
+            background:#ffffff;
+            border-bottom:1px solid #ddd;
+            padding:10px 20px;
+            font-size:14px;
+            display:flex;
+            align-items:center;
+            gap:15px;
+          ">
+            📄 <strong id="pdfName"></strong>
+
+          <a id="viewPdf"
+              href="#"
+              target="_blank"
+              style="color:#0d47a1; text-decoration:none;">
+              View
+            </a>
+
+            <a id="downloadPdf"
+              href="#"
+              download
+              style="color:#0d47a1; text-decoration:none;">
+              Download
+            </a>
+      </div>
+      <div id="aiSummary" class="content-box">
+        Hello!!! please select the side history to view your AI details
+      </div>
+    </div>
+
   </div>
 
-</div>
+  <script>
+    const reportList = document.getElementById("reportList");
+    const extractedTextDiv = document.getElementById("extractedText");
+    const aiSummaryDiv = document.getElementById("aiSummary");
 
-<script>
-  const reportList = document.getElementById("reportList");
-  const extractedTextDiv = document.getElementById("extractedText");
-  const aiSummaryDiv = document.getElementById("aiSummary");
+    const pdfSection = document.getElementById("pdfSection");
+    const pdfNameSpan = document.getElementById("pdfName");
+    const downloadPdfLink = document.getElementById("downloadPdf");
+    const viewPdfLink = document.getElementById("viewPdf");
 
-  // Load report list
-  fetch("http://127.0.0.1:5000/history")  // fetch = “Go to backend and ask for data”
-    .then(res => res.json())   //res = response from backend
-    .then(data => {
-      data.data.forEach(report => {
-        const div = document.createElement("div");
-        div.className = "report-item";  
-        div.innerHTML = `
-          <strong>${report.pdf_name}</strong><br>
-          <small>${report.created_at}</small>
-        `;
-        div.onclick = () => loadReport(report.id, div);
-        reportList.appendChild(div);   // Now the div is finally added to the to the sidebar whose id is reportList.
-      });
-    });
 
-  function loadReport(id, element) {
-    document.querySelectorAll(".report-item")
-      .forEach(i => i.classList.remove("active"));
-    element.classList.add("active");
-
-    fetch(`http://127.0.0.1:5000/history/${id}`)
+    // Load report list
+    fetch("http://127.0.0.1:5000/history")
       .then(res => res.json())
       .then(data => {
-        extractedTextDiv.textContent = data.data.extracted_text;
-        aiSummaryDiv.textContent =
-          data.data.ai_summary || "No AI summary available";
+        data.data.forEach(report => {
+          const div = document.createElement("div");
+          div.className = "report-item";
+          div.innerHTML = `
+            <strong>${report.pdf_name}</strong><br>
+            <small>${report.created_at}</small>
+          `;
+          div.onclick = () => loadReport(report.id, div);
+          reportList.appendChild(div);
+        });
       });
-  }
-</script>
 
-</body>
-</html> -->
+    function loadReport(id, element) {
+      document.querySelectorAll(".report-item")
+        .forEach(i => i.classList.remove("active"));
+      element.classList.add("active");
 
+      fetch(`http://127.0.0.1:5000/history/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          extractedTextDiv.textContent = data.data.extracted_text;   # return jsonify madhla data(app.py) chya madhla
+          aiSummaryDiv.textContent = data.data.ai_summary || "No AI summary available";
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Report History</title>
+            // Show PDF download section
+            // PDF actions
+            const pdfUrl = `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
 
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-  }
+            pdfNameSpan.textContent = data.data.pdf_name;
+            viewPdfLink.href = pdfUrl;
+            downloadPdfLink.href = pdfUrl;
 
-  /* ---------- TOP NAVBAR (NEW) ---------- */
-  .topbar {
-    height: 60px;
-    background: #0d47a1;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
+            pdfSection.style.display = "flex";
+        });
+       
+        
+    }
+  </script>
 
-  .topbar h4 {
-    margin: 0;
-    font-size: 18px;
-  }
-
-  .topbar span {
-    margin-left: 10px;
-    font-size: 14px;
-    opacity: 0.9;
-  }
-
-  .topbar .right {
-    margin-left: auto;
-  }
-
-  .topbar a {
-    color: #ffffff;
-    text-decoration: none;
-    border: 1px solid #ffffff;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-
-  .topbar a:hover {
-    background: rgba(255,255,255,0.15);
-  }
-
-  /* ---------- MAIN LAYOUT ---------- */
-  .layout {
-    display: flex;
-    height: calc(100vh - 60px); /* subtract navbar height */
-  }
-
-  /* LEFT SIDEBAR */
-  .sidebar {
-    width: 280px;
-    background: #ffffff;
-    border-right: 1px solid #ddd;
-    padding: 10px;
-    overflow-y: auto;
-  }
-
-  .sidebar h3 {
-    margin: 10px 0;
-  }
-
-  .report-item {
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #eee;
-  }
-
-  .report-item:hover,
-  .report-item.active {
-    background: #e8f0ff;
-  }
-
-  /* CENTER + RIGHT PANELS */
-  .panel {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-  }
-
-  .panel h3 {
-    margin-top: 0;
-  }
-
-  .content-box {
-    background: #ffffff;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    white-space: pre-wrap;
-    min-height: 85%;
-  }
-    /* ---------- Sidebar Color Theme ---------- */
-
-  /* Sidebar background */
-  .sidebar {
-    background: #f7f9fc; /* soft medical blue-grey */
-  }
-
-  /* Report item default */
-  .report-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    transition: background 0.2s ease, border 0.2s ease;
-  }
-
-  /* Hover effect */
-  .report-item:hover {
-    background: #eef4ff;
-    border-color: #c7d8ff;
-  }
-
-  /* Active (selected) report */
-  .report-item.active {
-    background: #dbe9ff;
-    border-left: 4px solid #0d47a1; /* brand blue */
-    font-weight: 600;
-  }
-
-  /* Sidebar title */
-  .sidebar h3 {
-    color: #0d47a1;
-    font-weight: 600;
-  }
-
-  /* Optional: scrollbar styling (nice polish) */
-  .sidebar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-  }
-
-  .sidebar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-</style>
-</head>
-
-<body>
-
-<!-- 🔵 NAVBAR (NEW) -->
-<div class="topbar">
-  <h4>🩺 Project-R</h4>
-  <span>[AI-Powered Medical Report Analyzer]</span>
-
-  <div class="right">
-    <a href="index.html">Home Page</a>
-  </div>
-</div>
-
-<!-- 🔹 HISTORY LAYOUT -->
-<div class="layout">
-
-  <!-- LEFT -->
-  <div class="sidebar" id="reportList">
-    <h3>Reports</h3>
-  </div>
-
-  <!-- CENTER -->
-  <div class="panel">
-    <h3>Extracted Text</h3>
-    <div id="extractedText" class="content-box">
-      Hello!!! please select the side history to view your report detail
-    </div>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="panel">
-    <h3>AI Summary</h3>
-    <div id="aiSummary" class="content-box">
-      Hello!!! please select the side history to view your AI details
-    </div>
-  </div>
-
-</div>
-
-<script>
-  const reportList = document.getElementById("reportList");
-  const extractedTextDiv = document.getElementById("extractedText");
-  const aiSummaryDiv = document.getElementById("aiSummary");
-
-  // Load report list
-  fetch("http://127.0.0.1:5000/history")
-    .then(res => res.json())
-    .then(data => {
-      data.data.forEach(report => {
-        const div = document.createElement("div");
-        div.className = "report-item";
-        div.innerHTML = `
-          <strong>${report.pdf_name}</strong><br>
-          <small>${report.created_at}</small>
-        `;
-        div.onclick = () => loadReport(report.id, div);
-        reportList.appendChild(div);
-      });
-    });
-
-  function loadReport(id, element) {
-    document.querySelectorAll(".report-item")
-      .forEach(i => i.classList.remove("active"));
-    element.classList.add("active");
-
-    fetch(`http://127.0.0.1:5000/history/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        extractedTextDiv.textContent = data.data.extracted_text;
-        aiSummaryDiv.textContent =
-          data.data.ai_summary || "No AI summary available";
-      });
-  }
-</script>
-
-</body>
-</html>
+  </body>
+  </html>

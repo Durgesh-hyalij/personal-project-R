@@ -7,6 +7,7 @@ from dotenv import load_dotenv  # Load .env file
 from models import db, init_db, Report
 from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
+from flask import send_from_directory
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -15,8 +16,10 @@ if USE_AI:  # Optional: load env only if AI is enabled
     load_dotenv()
 
 COHERE_API_KEY = os.getenv('API_URL')
-UPLOAD_FOLDER = "Backend/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
+# UPLOAD_FOLDER = "Backend/uploads"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
 
 
 # Create client ONLY if AI is enabled # COHERE_API_KEY = "COHERE_API_KEY"
@@ -67,7 +70,8 @@ def get_report_history():
     for report in reports:
         history_list.append({
             "id": report.id,
-            "pdf_name": report.pdf_path.split("/")[-1],
+            # "pdf_name": report.pdf_path.split("/")[-1],
+            "pdf_name": os.path.basename(report.pdf_path),
             "created_at": report.created_at.strftime("%Y-%m-%d %H:%M"),
             "has_ai_summary": True if report.ai_summary else False
         })
@@ -80,7 +84,8 @@ def get_report_history():
 
 @app.route("/history/<int:report_id>", methods=["GET"])
 def get_single_report(report_id):
-    report = Report.query.get(report_id)
+    # report = Report.query.get(report_id)
+    report = db.session.get(Report, report_id)
 
     if not report:
         return jsonify({
@@ -92,9 +97,22 @@ def get_single_report(report_id):
         "success": True,
         "data": {
             "extracted_text": report.extracted_text,
-            "ai_summary": report.ai_summary
+            "ai_summary": report.ai_summary,
+            "pdf_name": os.path.basename(report.pdf_path)
         }
     })
+
+@app.route("/download/<path:filename>")
+def download_pdf(filename):     #filename comes from URL (route)
+    # print("UPLOAD FOLDER:", app.config["UPLOAD_FOLDER"])  #testing
+    # print("FILENAME:", filename)
+    return send_from_directory(
+        app.config["UPLOAD_FOLDER"],
+        filename,
+        as_attachment=False  # if true the file automatically downloads 
+    )
+    
+
 
 
 @app.route("/upload-report", methods=["POST"])
