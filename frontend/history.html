@@ -148,6 +148,38 @@
       background: transparent;
     }
 
+    /* pdfbutton css */
+    /* ---------- AI PDF DOWNLOAD BUTTON ---------- */
+#downloadAiPdf {
+  background: #ffffff;
+  color: #0d47a1;
+  border: 2px solid #ffffff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Hover effect */
+#downloadAiPdf:hover {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+/* Click (active) effect */
+#downloadAiPdf:active {
+  transform: scale(0.96);
+}
+
+/* Focus (keyboard accessibility) */
+#downloadAiPdf:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+  
+
   </style>
   </head>
 
@@ -160,6 +192,10 @@
 
     <div class="right">
       <a href="index.html">Home Page</a>
+    </div>
+
+    <div class="right">
+      <button id="downloadAiPdf">Download AI Summary PDF</button>
     </div>
 
   </div>
@@ -216,32 +252,7 @@
     <div class="panel">
       <h3>AI Summary</h3>
       <!-- PDF ACTION BAR -->
-      <div id="pdfSection" style="
-            display:none;
-            background:#ffffff;
-            border-bottom:1px solid #ddd;
-            padding:10px 20px;
-            font-size:14px;
-            display:flex;
-            align-items:center;
-            gap:15px;
-          ">
-            📄 <strong id="pdfName"></strong>
-
-          <a id="viewPdf"
-              href="#"
-              target="_blank"
-              style="color:#0d47a1; text-decoration:none;">
-              View
-            </a>
-
-            <a id="downloadPdf"
-              href="#"
-              download
-              style="color:#0d47a1; text-decoration:none;">
-              Download
-            </a>
-      </div>
+      
       <div id="aiSummary" class="content-box">
         Hello!!! please select the side history to view your AI details
       </div>
@@ -249,58 +260,105 @@
 
   </div>
 
-  <script>
-    const reportList = document.getElementById("reportList");
-    const extractedTextDiv = document.getElementById("extractedText");
-    const aiSummaryDiv = document.getElementById("aiSummary");
+ <script>
+  // ==============================
+  // ELEMENT REFERENCES
+  // ==============================
+  const reportList = document.getElementById("reportList");
+  const extractedTextDiv = document.getElementById("extractedText");
+  const aiSummaryDiv = document.getElementById("aiSummary");
 
-    const pdfSection = document.getElementById("pdfSection");
-    const pdfNameSpan = document.getElementById("pdfName");
-    const downloadPdfLink = document.getElementById("downloadPdf");
-    const viewPdfLink = document.getElementById("viewPdf");
+  const pdfSection = document.getElementById("pdfSection");
+  const pdfNameSpan = document.getElementById("pdfName");
+  const downloadPdfLink = document.getElementById("downloadPdf");
+  const viewPdfLink = document.getElementById("viewPdf");
 
+  const downloadAiBtn = document.getElementById("downloadAiPdf");
 
-    // Load report list
-    fetch("http://127.0.0.1:5000/history")
+  // ==============================
+  // LOAD REPORT HISTORY
+  // ==============================
+  fetch("http://127.0.0.1:5000/history")
+    .then(res => res.json())
+    .then(data => {
+      reportList.innerHTML += "<h3>Reports</h3>";
+
+      data.data.forEach(report => {
+        const div = document.createElement("div");
+        div.className = "report-item";
+        div.innerHTML = `
+          <strong>${report.pdf_name}</strong><br>
+          <small>${report.created_at}</small>
+        `;
+        div.onclick = () => loadReport(report.id, div);
+        reportList.appendChild(div);
+      });
+    })
+    .catch(err => console.error("History load error:", err));
+
+  // ==============================
+  // LOAD SINGLE REPORT
+  // ==============================
+  function loadReport(id, element) {
+    document.querySelectorAll(".report-item")
+      .forEach(i => i.classList.remove("active"));
+    element.classList.add("active");
+
+    fetch(`http://127.0.0.1:5000/history/${id}`)
       .then(res => res.json())
       .then(data => {
-        data.data.forEach(report => {
-          const div = document.createElement("div");
-          div.className = "report-item";
-          div.innerHTML = `
-            <strong>${report.pdf_name}</strong><br>
-            <small>${report.created_at}</small>
-          `;
-          div.onclick = () => loadReport(report.id, div);
-          reportList.appendChild(div);
-        });
-      });
+        // Show extracted text & AI summary
+        extractedTextDiv.textContent = data.data.extracted_text;
+        aiSummaryDiv.textContent =
+          data.data.ai_summary || "No AI summary available";
 
-    function loadReport(id, element) {
-      document.querySelectorAll(".report-item")
-        .forEach(i => i.classList.remove("active"));
-      element.classList.add("active");
+        // Original PDF actions
+        const pdfUrl =
+          `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
 
-      fetch(`http://127.0.0.1:5000/history/${id}`)
-        .then(res => res.json())
-        .then(data => {
-          extractedTextDiv.textContent = data.data.extracted_text;  //  return jsonify madhla data(app.py) chya madhla
-          aiSummaryDiv.textContent = data.data.ai_summary || "No AI summary available";
+        pdfNameSpan.textContent = data.data.pdf_name;
+        viewPdfLink.href = pdfUrl;
+        downloadPdfLink.href = pdfUrl;
 
-            // Show PDF download section
-            // PDF actions
-            const pdfUrl = `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
+        pdfSection.style.display = "flex";
+      })
+      .catch(err => console.error("Report load error:", err));
+  }
 
-            pdfNameSpan.textContent = data.data.pdf_name;
-            viewPdfLink.href = pdfUrl;
-            downloadPdfLink.href = pdfUrl;
+  // ==============================
+  // DOWNLOAD AI SUMMARY AS PDF
+  // ==============================
+  if (downloadAiBtn) {
+    downloadAiBtn.addEventListener("click", () => {
 
-            pdfSection.style.display = "flex";
-        });
-       
-        
-    }
-  </script>
+      const aiText = aiSummaryDiv.textContent.trim();
+
+      if (!aiText || aiText.startsWith("Hello")) {
+        alert("No AI summary available to download.");
+        return;
+      }
+
+      fetch("http://127.0.0.1:5000/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result: aiText })
+      })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "AI_Summary.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch(err => console.error("AI PDF error:", err));
+    });
+  }
+</script>
+
 
   </body>
   </html>
