@@ -21,6 +21,8 @@ if USE_AI:  # Optional: load env only if AI is enabled
 COHERE_API_KEY = os.getenv('API_URL')
 # UPLOAD_FOLDER = "Backend/uploads"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(BASE_DIR, "..", "static", "logo.png")
+logo_path = os.path.join(BASE_DIR, "..", "static", "logo.png")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 # os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
 
@@ -64,18 +66,50 @@ def test():
         "preview": text[:1000]
     })
 
+from flask import request, send_file
+from fpdf import FPDF
+import io
+from datetime import datetime
+
 @app.route("/generate-pdf", methods=["POST"])
 def generate_pdf():
     data = request.json
-    ai_result = data.get("result")
+    ai_result = data.get("result", "")
 
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
 
+    # LOGO
+    pdf.image("static/logo.png", x=10, y=8, w=25)
+    # pdf.image(logo_path, x=10, y=8, w=25)
+
+    # TITLE
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, "AI Medical Report Summary", ln=True, align="C")
+
+    # SUBTITLE
+    pdf.set_font("Arial", size=10)
+    pdf.cell(
+        0, 8,
+        f"Generated on {datetime.now().strftime('%d %b %Y, %I:%M %p')}",
+        ln=True,
+        align="C"
+    )
+
+    pdf.ln(10)
+
+    # CONTENT
+    pdf.set_font("Arial", size=12)
     for line in ai_result.split("\n"):
         pdf.multi_cell(0, 8, line)
 
+    # FOOTER
+    pdf.set_y(-20)
+    pdf.set_font("Arial", size=9)
+    pdf.cell(0, 10, "© Project-R | AI Generated", align="C")
+
+    # SEND PDF
     pdf_bytes = pdf.output(dest="S").encode("latin-1")
     pdf_stream = io.BytesIO(pdf_bytes)
 
@@ -83,7 +117,7 @@ def generate_pdf():
         pdf_stream,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name="AI_Result.pdf"
+        download_name="AI_Summary.pdf"
     )
 
 @app.route("/history", methods=["GET"])
