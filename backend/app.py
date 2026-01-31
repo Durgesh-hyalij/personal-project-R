@@ -8,6 +8,9 @@ from models import db, init_db, Report
 from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from flask import send_from_directory
+from flask import request, send_file
+from fpdf import FPDF
+import io
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -61,9 +64,32 @@ def test():
         "preview": text[:1000]
     })
 
+@app.route("/generate-pdf", methods=["POST"])
+def generate_pdf():
+    data = request.json
+    ai_result = data.get("result")
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    for line in ai_result.split("\n"):
+        pdf.multi_cell(0, 8, line)
+
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+    pdf_stream = io.BytesIO(pdf_bytes)
+
+    return send_file(
+        pdf_stream,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="AI_Result.pdf"
+    )
+
 @app.route("/history", methods=["GET"])
 def get_report_history():
     reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
+    print("hello durgesh")
     history_list = []
 
     for report in reports:
