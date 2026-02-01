@@ -11,6 +11,7 @@ from flask import send_from_directory
 from flask import request, send_file
 from fpdf import FPDF
 import io
+from datetime import datetime
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -66,11 +67,95 @@ def test():
         "preview": text[:1000]
     })
 
-from flask import request, send_file
-from fpdf import FPDF
-import io
-from datetime import datetime
+import os
+from flask import jsonify
 
+@app.route("/history/<int:id>", methods=["DELETE"])
+def delete_report(id):
+    report = Report.query.get(id)
+
+    if not report:
+        return jsonify({
+            "success": False,
+            "message": "Report not found"
+        }), 404
+
+    # 🔹 Delete PDF file from disk
+    if report.pdf_path and os.path.exists(report.pdf_path):
+        try:
+            os.remove(report.pdf_path)
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "message": "Failed to delete PDF file"
+            }), 500
+
+    # 🔹 Delete DB record
+    try:
+        db.session.delete(report)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "message": "Failed to delete report from database"
+        }), 500
+
+    return jsonify({
+        "success": True,
+        "message": "Report deleted successfully"
+    })
+
+
+@app.route("/history/<int:id>/pdf-name", methods=["PATCH"])
+def edit_pdf_name(id):
+    # 1️⃣ Fetch report
+    report = Report.query.get(id)
+
+    if not report:
+        return jsonify({
+            "success": False,
+            "message": "Report not found"
+        }), 404
+
+    # 2️⃣ Read input
+    data = request.json
+    new_name = data.get("pdf_name")
+
+    # 3️⃣ Validation
+    if not new_name or not new_name.strip():
+        return jsonify({
+            "success": False,
+            "message": "PDF name cannot be empty"
+        }), 400
+
+    # Force .pdf extension
+    if not new_name.lower().endswith(".pdf"):
+        new_name += ".pdf"
+
+    # 4️⃣ Update DB
+    report.pdf_name = new_name
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "message": "Failed to update PDF name"
+        }), 500
+
+    # 5️⃣ Response
+    return jsonify({
+        "success": True,
+        "message": "PDF name updated successfully",
+        "data": {
+            "id": report.id,
+            "pdf_name": report.pdf_name
+        }
+    })
+
+    
 @app.route("/generate-pdf", methods=["POST"])
 def generate_pdf():
     data = request.json

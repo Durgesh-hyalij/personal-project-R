@@ -265,6 +265,10 @@
           style="color:#0d47a1; text-decoration:none;">
           Download
         </a>
+        <button id="deleteReportBtn" style="color:red;">
+          🗑 Delete Report
+        </button>
+
       </div>
 
       <div id="extractedText" class="content-box">
@@ -313,6 +317,7 @@
         div.className = "report-item";
         div.innerHTML = `
           <strong>${report.pdf_name}</strong><br>
+
           <small>${report.created_at}</small>
         `;
         div.onclick = () => loadReport(report.id, div);
@@ -328,6 +333,8 @@
     document.querySelectorAll(".report-item")
       .forEach(i => i.classList.remove("active"));
     element.classList.add("active");
+    currentReportId = id;
+
 
     fetch(`http://127.0.0.1:5000/history/${id}`)
       .then(res => res.json())
@@ -382,6 +389,51 @@
       })
       .catch(err => console.error("AI PDF error:", err));
     });
+
+    //start
+    const deleteBtn = document.getElementById("deleteReportBtn");
+
+deleteBtn.addEventListener("click", () => {
+  if (!currentReportId) {
+    alert("Please select a report first");
+    return;
+  }
+
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this report?\nThis action cannot be undone."
+  );
+
+  if (!confirmDelete) return;
+
+  fetch(`http://127.0.0.1:5000/history/${currentReportId}`, {
+    method: "DELETE"
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("Report deleted");
+
+      // 🔹 Remove from sidebar
+      document.querySelector(".report-item.active")?.remove();
+
+      // 🔹 Clear main panels
+      extractedTextDiv.textContent = "Select a report to view details";
+      aiSummaryDiv.textContent = "Select a report to view AI summary";
+      pdfSection.style.display = "none";
+
+      currentReportId = null;
+    } else {
+      alert(data.message);
+    }
+  })
+  .catch(err => {
+    console.error("Delete error:", err);
+    alert("Failed to delete report");
+  });
+});
+
+    
+
   }
 </script>
 
