@@ -49,6 +49,12 @@ def extract_text_from_pdf(pdf_path):  # Iterates through all PDF pages to extrac
             text += page_text + "\n"
     return text.strip()
 
+class PDF(FPDF):
+    def footer(self):
+        self.set_y(-20)
+        self.set_font("Arial", size=9)
+        self.cell(0, 10, "© Project-R | AI Generated", align="C")
+
 @app.route("/test")
 def test():
     sample_pdf = os.path.join(app.config["UPLOAD_FOLDER"], "sample.pdf")
@@ -161,7 +167,8 @@ def generate_pdf():
     data = request.json
     ai_result = data.get("result", "")
 
-    pdf = FPDF()
+    # pdf = FPDF()
+    pdf = PDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
@@ -190,9 +197,11 @@ def generate_pdf():
         pdf.multi_cell(0, 8, line)
 
     # FOOTER
-    pdf.set_y(-20)
-    pdf.set_font("Arial", size=9)
-    pdf.cell(0, 10, "© Project-R | AI Generated", align="C")
+    # pdf.set_y(-20)
+    # pdf.set_font("Arial", size=9)
+    # pdf.cell(0, 10, "© Project-R | AI Generated", align="C")
+    pdf.set_auto_page_break(auto=True, margin=20)
+
 
     # SEND PDF
     pdf_bytes = pdf.output(dest="S").encode("latin-1")
