@@ -113,53 +113,53 @@ def delete_report(id):
     })
 
 
-@app.route("/history/<int:id>/pdf-name", methods=["PATCH"])
-def edit_pdf_name(id):
-    # 1️⃣ Fetch report
-    report = Report.query.get(id)
+# @app.route("/history/<int:id>/pdf-name", methods=["PATCH"])
+# def edit_pdf_name(id):
+#     # 1️⃣ Fetch report
+#     report = Report.query.get(id)
 
-    if not report:
-        return jsonify({
-            "success": False,
-            "message": "Report not found"
-        }), 404
+#     if not report:
+#         return jsonify({
+#             "success": False,
+#             "message": "Report not found"
+#         }), 404
 
-    # 2️⃣ Read input
-    data = request.json
-    new_name = data.get("pdf_name")
+#     # 2️⃣ Read input
+#     data = request.json
+#     new_name = data.get("pdf_name")
 
-    # 3️⃣ Validation
-    if not new_name or not new_name.strip():
-        return jsonify({
-            "success": False,
-            "message": "PDF name cannot be empty"
-        }), 400
+#     # 3️⃣ Validation
+#     if not new_name or not new_name.strip():
+#         return jsonify({
+#             "success": False,
+#             "message": "PDF name cannot be empty"
+#         }), 400
 
-    # Force .pdf extension
-    if not new_name.lower().endswith(".pdf"):
-        new_name += ".pdf"
+#     # Force .pdf extension
+#     if not new_name.lower().endswith(".pdf"):
+#         new_name += ".pdf"
 
-    # 4️⃣ Update DB
-    report.pdf_name = new_name
+#     # 4️⃣ Update DB
+#     report.pdf_name = new_name
 
-    try:
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-        return jsonify({
-            "success": False,
-            "message": "Failed to update PDF name"
-        }), 500
+#     try:
+#         db.session.commit()
+#     except Exception:
+#         db.session.rollback()
+#         return jsonify({
+#             "success": False,
+#             "message": "Failed to update PDF name"
+#         }), 500
 
-    # 5️⃣ Response
-    return jsonify({
-        "success": True,
-        "message": "PDF name updated successfully",
-        "data": {
-            "id": report.id,
-            "pdf_name": report.pdf_name
-        }
-    })
+#     # 5️⃣ Response
+#     return jsonify({
+#         "success": True,
+#         "message": "PDF name updated successfully",
+#         "data": {
+#             "id": report.id,
+#             "pdf_name": report.pdf_name
+#         }
+#     })
 
     
 @app.route("/generate-pdf", methods=["POST"])
