@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analyze Report | MedAnalyzer AI</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <nav>
+        <h1 style="cursor: pointer;" onclick="window.location.href='dashboard.html'">🩺 MedAnalyzer AI</h1>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="upload.html" class="active">New Upload</a>
+            <a href="history.html">History</a>
+            <a href="#" onclick="logout()" style="color: white; font-weight: 600;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container scrollable">
+        <div class="card upload-wrapper" id="uploadSection">
+            <h2 style="margin-top: 0;">Analyze Medical Report</h2>
+            <p style="color: var(--text-light); margin-bottom: 30px;">Upload your PDF lab report to get a simple, AI-powered summary.</p>
+
+            <div class="upload-box" onclick="document.getElementById('pdfFile').click()">
+                <div style="font-size: 40px; margin-bottom: 10px;">📂</div>
+                <h3>Click to Upload PDF</h3>
+                <p>Supported formats: .pdf (Max 10MB)</p>
+                <input type="file" id="pdfFile" accept=".pdf" hidden>
+            </div>
+
+            <div class="loader-container" id="loader">
+                <p style="margin-bottom: 5px; font-weight: 500;">Analyzing Report...</p>
+                <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+            </div>
+        </div>
+
+        <div class="card" id="resultSection" style="display: none; width: 100%; max-width: 900px; margin: 2rem auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="margin:0;">Analysis Result</h2>
+                <div>
+                    <button class="btn btn-outline" onclick="window.location.reload()">Upload Another</button>
+                    <button class="btn" id="dlBtn">Download PDF</button>
+                </div>
+            </div>
+            <div id="aiOutput" class="markdown-body"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

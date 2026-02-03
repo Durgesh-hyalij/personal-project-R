@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | MedAnalyzer AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h1 style="cursor: pointer;" onclick="window.location.href='dashboard.html'">🩺 MedAnalyzer AI</h1>
+        <div>
+            <a href="dashboard.html" class="active">Dashboard</a>
+            <a href="upload.html">New Upload</a>
+            <a href="history.html">History</a>
+            <a href="#" onclick="logout()" style="color: white; font-weight: 600;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container" style="display: block; overflow-y: auto; padding: 30px; box-sizing: border-box;">
+        
+        <div class="dashboard-header">
+            <img id="userAvatar" src="" alt="Profile" class="profile-pic">
+            <div class="profile-info">
+                <h2 id="userName">Welcome...</h2>
+                <p id="userEmail">Loading profile...</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalReports">-</div>
+                <div style="color: #64748b;">Total Reports</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="lastActive">-</div>
+                <div style="color: #64748b;">Last Activity</div>
+            </div>
+            <div class="stat-card" style="opacity: 0.6;">
+                <div class="stat-number">Free</div>
+                <div style="color: #64748b;">Plan Status</div>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 15px;">Quick Actions</h3>
+        <div class="quick-actions">
+            <button class="btn" onclick="window.location.href='upload.html'" style="padding: 1rem 2rem;">+ Analyze New Report</button>
+            <button class="btn btn-outline" onclick="window.location.href='history.html'" style="padding: 1rem 2rem;">View History</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth(); 
+            try {
+                const res = await fetch(`${API_BASE}/dashboard-stats`, {
+                    headers: { "Authorization": `Bearer ${getToken()}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('userName').innerText = `Hello, ${data.user.name}!`;
+                    document.getElementById('userEmail').innerText = data.user.email;
+                    document.getElementById('userAvatar').src = data.user.avatar_url;
+                    document.getElementById('totalReports').innerText = data.stats.total_reports;
+                    document.getElementById('lastActive').innerText = data.stats.last_active;
+                }
+            } catch (err) { console.error("Dashboard Error:", err); }
+        });
+    </script>
+</body>
+</html>

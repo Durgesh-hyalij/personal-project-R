@@ -1,163 +1,26 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Medical Report Analyzer</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="container">
-    <h2>Upload Medical Report (PDF)</h2>
-
-    <input type="file" id="pdfFile" accept=".pdf">
-
-    <button id="uploadBtn" onclick="uploadPDF()">Upload & Analyze</button>
-    <button><a href="welcome.html" > Go Back </a></button>
-
-    <!-- Loader ->
-    <div id="loader" class="hidden">
-        <div class="spinner"></div>
-        <p>Analyzing report, please wait...</p>
-
-        <div class="progress-bar">
-            <div id="progress"></div>
-        </div>
-    </div>
-
-    <h3>AI Explanation</h3>
-    <div id="result" class="result-box"></div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>    -->
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Medical Report Analyzer</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
+    <title>MedAnalyzer AI | Medical Reports Simplified</title>
     <link rel="stylesheet" href="style.css">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-
-<!-- Sidebar 
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <h4>🩺 Project-R</h4>
-    </div>
-
-    <ul class="sidebar-menu">
-        <li class="active">
-            <i class="bi bi-upload"></i>
-            <span>Phase 1: Report Analysis</span>
-        </li>
-    </ul>
-    <ul class="sidebar-menu">
-        <li class="active">
-            <i class="bi bi-upload"></i>
-            <span>Phase 2: Report Analysis</span>
-        </li>
-    </ul>
-</div> -->
-
-<!-- Main Content -->
-<div id="main">
-
-    <!-- Top Navbar -->
-    <div class="header-container topbar">
-        <!-- <i class="bi bi-list menu-icon" onclick="toggleSidebar()"></i> -->
-    <h4>🩺 Project-R</h4>
-    <h5 class="mb-0">[AI-Powered Medical Report Analyzer]</h5>
-
-    <div class="ms-auto">
-        <a href="history copy.html" class="btn btn-outline-light btn-sm">
-            History Page
-        </a>
-    </div>
-
-        <!-- <span class="topbar-title">AI-Powered Medical Report Analyzer</span> -->
-    </div>
-
-    <!-- Content -->
-    <div class="content container">
-
-        <!-- Header -->
-        <div class="text-center mb-4">
-            
-            <h2 class="fw-bold">Upload Medical Report</h2>
-            <p class="text-muted">
-                Get a simple, patient-friendly explanation of your test results
+    <div class="welcome-container">
+        <div class="welcome-card">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🩺</div>
+            <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">MedAnalyzer AI</h1>
+            <p style="color: #64748b; line-height: 1.6; margin-bottom: 2.5rem;">
+                Understanding medical reports shouldn't be hard.<br>
+                Upload your lab report and get a 
+                <strong>simple, clear, and reassuring</strong> 
+                summary in seconds.
             </p>
-        </div>
-
-        <!-- Upload Card -->
-        <div class="card app-card mb-4">
-            <div class="card-body">
-                <label class="form-label fw-semibold" for="pdfFile">
-                    Select Medical Report (PDF)
-                </label>
-
-                <input type="file" id="pdfFile" accept=".pdf" class="form-control mb-3">
-
-                <button id="uploadBtn" class="btn btn-primary w-100" onclick="uploadPDF()">
-                    Analyze Report
-                </button>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn" style="padding: 1rem 2rem;" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn btn-outline" style="padding: 1rem 2rem;" onclick="window.location.href='register.html'">Sign Up</button>
             </div>
         </div>
-
-        <!-- Loader -->
-        <div id="loader" class="card app-card text-center hidden mb-4">
-            <div class="card-body">
-                <div class="spinner-border text-primary mb-3"></div>
-                <p>Analyzing report, please wait…</p>
-
-                <div class="progress">
-                    <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Result -->
-        <div class="card app-card">
-            <div class="card-body">
-                <h5 class="mb-2">AI Explanation</h5>
-                <div id="result" class="result-box">
-                    <span class="text-muted">
-                        Upload a report to view explanation here.
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <!--<button><a href="history.html"> History Page </a></button>-->
-
     </div>
-</div>
-
-<!-- Script -->
-<script>
-function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
-    document.getElementById("main").classList.toggle("shift");
-}
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!--markdown js library-->
-<script src="script.js"></script>
-
 </body>
 </html>
