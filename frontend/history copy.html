@@ -4,54 +4,58 @@
 <meta charset="UTF-8">
 <title>Report History</title>
 
-<!-- Markdown Parser -->
+<!-- Markdown parser for AI summary & extracted text -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
+/* ===============================
+   BASIC PAGE STYLING
+================================ */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #f4f6f8;
 }
 
-/* ---------- TOP NAVBAR ---------- */
+/* ===============================
+   TOP NAVBAR
+================================ */
 .topbar {
   height: 60px;
   background: #0d47a1;
-  color: #ffffff;
+  color: white;
   display: flex;
   align-items: center;
   padding: 0 20px;
 }
 
-.topbar h4 { margin: 0; }
-.topbar span { margin-left: 10px; font-size: 14px; opacity: 0.9; }
-.topbar .right { margin-left: auto; }
-.topbar a {
-  color: #fff;
-  border: 1px solid #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  text-decoration: none;
+.topbar .right {
+  margin-left: auto;
 }
-#downloadAiPdf {
+
+.topbar button, .topbar a {
   margin-left: 10px;
-  background: #fff;
+  background: white;
   color: #0d47a1;
   border: none;
   padding: 7px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
 }
 
-/* ---------- LAYOUT ---------- */
+/* ===============================
+   MAIN LAYOUT
+================================ */
 .layout {
   display: flex;
   height: calc(100vh - 60px);
 }
 
-/* ---------- SIDEBAR ---------- */
+/* ===============================
+   SIDEBAR (REPORT LIST)
+================================ */
 .sidebar {
   width: 280px;
   background: #f7f9fc;
@@ -59,39 +63,49 @@ body {
   padding: 10px;
   overflow-y: auto;
 }
+
 .report-item {
-  background: #fff;
+  background: white;
   padding: 10px;
   margin-bottom: 8px;
   border-radius: 6px;
   cursor: pointer;
   border: 1px solid #e2e8f0;
 }
-.report-item:hover { background: #eef4ff; }
+
+.report-item:hover {
+  background: #eef4ff;
+}
+
 .report-item.active {
   background: #dbe9ff;
   border-left: 4px solid #0d47a1;
   font-weight: 600;
 }
 
-/* ---------- PANELS ---------- */
+/* ===============================
+   CONTENT PANELS
+================================ */
 .panel {
   flex: 1;
   padding: 15px;
   overflow-y: auto;
 }
+
 .content-box {
-  background: #fff;
+  background: white;
   padding: 12px;
   border-radius: 6px;
   border: 1px solid #ddd;
   white-space: pre-wrap;
 }
 
-/* ---------- PDF ACTION BAR ---------- */
+/* ===============================
+   PDF ACTION BAR
+================================ */
 #pdfSection {
   display: none;
-  background: #fff;
+  background: white;
   border: 1px solid #ddd;
   padding: 10px;
   border-radius: 6px;
@@ -100,14 +114,17 @@ body {
   gap: 15px;
   align-items: center;
 }
+
 #deleteReportBtn {
   color: red;
-  border: none;
   background: none;
+  border: none;
   cursor: pointer;
 }
 
-/* ---------- TOGGLE BUTTON ---------- */
+/* ===============================
+   TOGGLE BUTTON
+================================ */
 #toggleExtractedBtn {
   margin: 10px 0;
   padding: 6px 10px;
@@ -116,37 +133,48 @@ body {
   border-radius: 6px;
   cursor: pointer;
 }
-
-/* ---------- MARKDOWN ---------- */
-.content-box h1, h2, h3 { color: #0d47a1; }
-.content-box ul { padding-left: 20px; }
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
+<!-- ===============================
+     AUTH GUARD (VERY IMPORTANT)
+================================ -->
+<script>
+  // If token is missing → force login
+  if (!localStorage.getItem("token")) {
+    window.location.href = "login.html";
+  }
+</script>
+
+<!-- ===============================
+     NAVBAR
+================================ -->
 <div class="topbar">
-  <h4>🩺 Project-R</h4>
-  <span>[AI-Powered Medical Report Analyzer]</span>
+  <h3>🩺 Project-R</h3>
 
   <div class="right">
     <a href="index.html">Home</a>
     <button id="downloadAiPdf">Download AI PDF</button>
+    <button id="logoutBtn">Logout</button>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ===============================
+     MAIN CONTENT
+================================ -->
 <div class="layout">
 
-  <!-- SIDEBAR -->
+  <!-- LEFT: REPORT LIST -->
   <div class="sidebar" id="reportList">
     <h3>Reports</h3>
   </div>
 
-  <!-- CENTER -->
+  <!-- RIGHT: REPORT DETAILS -->
   <div class="panel">
 
+    <!-- PDF ACTION BAR -->
     <div id="pdfSection">
       📄 <strong id="pdfName"></strong>
       <a id="viewPdf" target="_blank">View</a>
@@ -164,13 +192,19 @@ body {
     <h3 id="extractedTitle" style="display:none;">Full Extracted Text</h3>
     <div id="extractedText" class="content-box" style="display:none;"></div>
   </div>
-
 </div>
 
+<!-- ===============================
+     JAVASCRIPT LOGIC
+================================ -->
 <script>
+/* ===============================
+   GLOBAL VARIABLES
+================================ */
 let currentReportId = null;
 let extractedVisible = false;
 
+// DOM references
 const reportList = document.getElementById("reportList");
 const aiSummaryDiv = document.getElementById("aiSummary");
 const extractedTextDiv = document.getElementById("extractedText");
@@ -182,80 +216,141 @@ const pdfNameSpan = document.getElementById("pdfName");
 const viewPdfLink = document.getElementById("viewPdf");
 const downloadPdfLink = document.getElementById("downloadPdf");
 const deleteBtn = document.getElementById("deleteReportBtn");
+
 const downloadAiBtn = document.getElementById("downloadAiPdf");
+const logoutBtn = document.getElementById("logoutBtn");
 
-/* LOAD HISTORY */
-fetch("http://127.0.0.1:5000/history")
-  .then(res => res.json())
-  .then(data => {
-    data.data.forEach(report => {
-      const div = document.createElement("div");
-      div.className = "report-item";
-      div.innerHTML = `<strong>${report.pdf_name}</strong><br><small>${report.created_at}</small>`;
-      div.onclick = () => loadReport(report.id, div);
-      reportList.appendChild(div);
-    });
+/* ===============================
+   LOAD REPORT HISTORY
+================================ */
+fetch("http://127.0.0.1:5000/history", {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+})
+.then(res => {
+  // If token expired or invalid
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+    return null;
+  }
+  return res.json();
+})
+.then(data => {
+  if (!data) return;
+
+  data.data.forEach(report => {
+    const div = document.createElement("div");
+    div.className = "report-item";
+    div.innerHTML = `
+      <strong>${report.pdf_name}</strong><br>
+      <small>${report.created_at}</small>
+    `;
+    div.onclick = () => loadReport(report.id, div);
+    reportList.appendChild(div);
   });
+});
 
-/* LOAD REPORT */
+/* ===============================
+   LOAD SINGLE REPORT
+================================ */
 function loadReport(id, element) {
-  document.querySelectorAll(".report-item").forEach(i => i.classList.remove("active"));
+  document.querySelectorAll(".report-item")
+    .forEach(i => i.classList.remove("active"));
+
   element.classList.add("active");
   currentReportId = id;
 
-  fetch(`http://127.0.0.1:5000/history/${id}`)
-    .then(res => res.json())
-    .then(data => {
-      aiSummaryDiv.innerHTML = marked.parse(data.data.ai_summary || "No AI summary available");
-      extractedTextDiv.innerHTML = marked.parse(data.data.extracted_text);
+  fetch(`http://127.0.0.1:5000/history/${id}`, {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    aiSummaryDiv.innerHTML = marked.parse(
+      data.data.ai_summary || "No AI summary available"
+    );
 
-      extractedVisible = false;
-      extractedTextDiv.style.display = "none";
-      extractedTitle.style.display = "none";
-      toggleBtn.textContent = "Show full extracted text";
+    extractedTextDiv.innerHTML = marked.parse(
+      data.data.extracted_text
+    );
 
-      const pdfUrl = `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
-      pdfNameSpan.textContent = data.data.pdf_name;
-      viewPdfLink.href = pdfUrl;
-      downloadPdfLink.href = pdfUrl;
-      pdfSection.style.display = "flex";
-    });
+    // Reset extracted text view
+    extractedVisible = false;
+    extractedTextDiv.style.display = "none";
+    extractedTitle.style.display = "none";
+    toggleBtn.textContent = "Show full extracted text";
+
+    // PDF links
+    const pdfUrl = `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
+    pdfNameSpan.textContent = data.data.pdf_name;
+    viewPdfLink.href = pdfUrl;
+    downloadPdfLink.href = pdfUrl;
+    pdfSection.style.display = "flex";
+  });
 }
 
-/* TOGGLE EXTRACTED TEXT */
+/* ===============================
+   TOGGLE EXTRACTED TEXT
+================================ */
 toggleBtn.addEventListener("click", () => {
   extractedVisible = !extractedVisible;
   extractedTextDiv.style.display = extractedVisible ? "block" : "none";
   extractedTitle.style.display = extractedVisible ? "block" : "none";
-  toggleBtn.textContent = extractedVisible ? "Hide full extracted text" : "Show full extracted text";
+  toggleBtn.textContent = extractedVisible
+    ? "Hide full extracted text"
+    : "Show full extracted text";
 });
 
-/* DELETE REPORT */
+/* ===============================
+   DELETE REPORT
+================================ */
 deleteBtn.addEventListener("click", () => {
-  if (!currentReportId) return alert("Select a report first");
+  if (!currentReportId) {
+    alert("Select a report first");
+    return;
+  }
+
   if (!confirm("Delete this report permanently?")) return;
 
-  fetch(`http://127.0.0.1:5000/history/${currentReportId}`, { method: "DELETE" })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.querySelector(".report-item.active")?.remove();
-        aiSummaryDiv.textContent = "Select a report to view AI summary";
-        extractedTextDiv.style.display = "none";
-        pdfSection.style.display = "none";
-        currentReportId = null;
-      } else alert(data.message);
-    });
+  fetch(`http://127.0.0.1:5000/history/${currentReportId}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.querySelector(".report-item.active")?.remove();
+      aiSummaryDiv.textContent = "Select a report to view AI summary";
+      extractedTextDiv.style.display = "none";
+      pdfSection.style.display = "none";
+      currentReportId = null;
+    } else {
+      alert(data.message);
+    }
+  });
 });
 
-/* DOWNLOAD AI PDF */
+/* ===============================
+   DOWNLOAD AI SUMMARY AS PDF
+================================ */
 downloadAiBtn.addEventListener("click", () => {
   const text = aiSummaryDiv.textContent.trim();
-  if (!text) return alert("No AI summary");
+  if (!text) {
+    alert("No AI summary available");
+    return;
+  }
 
   fetch("http://127.0.0.1:5000/generate-pdf", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
     body: JSON.stringify({ result: text })
   })
   .then(res => res.blob())
@@ -265,6 +360,14 @@ downloadAiBtn.addEventListener("click", () => {
     a.download = "AI_Summary.pdf";
     a.click();
   });
+});
+
+/* ===============================
+   LOGOUT
+================================ */
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
 });
 </script>
 

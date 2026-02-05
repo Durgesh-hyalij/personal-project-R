@@ -4,14 +4,18 @@ from PyPDF2 import PdfReader
 import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
-from models import db, init_db, Report
+from models import db, init_db, Report , User
 from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from flask import send_from_directory
 from flask import request, send_file
 from fpdf import FPDF
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
+import jwt
+from functools import wraps
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -23,7 +27,6 @@ COHERE_API_KEY = os.getenv('API_URL')
 # UPLOAD_FOLDER = "Backend/uploads"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(BASE_DIR, "..", "static", "logo.png")
-logo_path = os.path.join(BASE_DIR, "..", "static", "logo.png")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 # os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
 
@@ -34,6 +37,7 @@ if USE_AI and COHERE_API_KEY:
     co = cohere.Client(COHERE_API_KEY)
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 CORS(app)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_demo.db'
@@ -55,6 +59,53 @@ class PDF(FPDF):
         self.set_font("Arial", size=9)
         self.cell(0, 10, "© Project-R | AI Generated", align="C")
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+
+        token = None
+
+        # 1️⃣ Read Authorization header
+        auth_header = request.headers.get("Authorization")
+
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+        if not token:
+            return jsonify({
+                "success": False,
+                "message": "Token is missing"
+            }), 401
+
+        try:
+            # 2️⃣ Decode token
+            decoded = jwt.decode(
+                token,
+                app.config["SECRET_KEY"],
+                algorithms=["HS256"]
+            )
+
+            # 3️⃣ Attach user_id to request
+            request.user_id = decoded["user_id"]
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({
+                "success": False,
+                "message": "Token expired"
+            }), 401
+
+        except jwt.InvalidTokenError:
+            return jsonify({
+                "success": False,
+                "message": "Invalid token"
+            }), 401
+
+        # 4️⃣ Token valid → allow request
+        return f(*args, **kwargs)
+
+    return decorated
+
+
 @app.route("/test")
 def test():
     sample_pdf = os.path.join(app.config["UPLOAD_FOLDER"], "sample.pdf")
@@ -73,12 +124,107 @@ def test():
         "preview": text[:1000]
     })
 
-import os
-from flask import jsonify
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+
+    # 1️⃣ Basic validation
+    if not name or not email or not password:
+        return jsonify({
+            "success": False,
+            "message": "All fields are required"
+        }), 400
+
+    # 2️⃣ Check if email already exists
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({
+            "success": False,
+            "message": "Email already registered"
+        }), 409
+
+    # 3️⃣ Hash password
+    password_hash = generate_password_hash(password)
+
+    # 4️⃣ Create user
+    new_user = User(
+        name=name,
+        email=email,
+        password_hash=password_hash
+    )
+
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "message": "Registration failed"
+        }), 500
+
+    # 5️⃣ Success response
+    return jsonify({
+        "success": True,
+        "message": "User registered successfully"
+    }), 201
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({
+            "success": False,
+            "message": "Email and password are required"
+        }), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "message": "Invalid email or password"
+        }), 401
+
+    if not check_password_hash(user.password_hash, password):
+        return jsonify({
+            "success": False,
+            "message": "Invalid email or password"
+        }), 401
+
+    payload = {
+        "user_id": user.id,
+        "email": user.email,
+        "exp": datetime.utcnow() + timedelta(hours=24)
+    }
+
+    token = jwt.encode(
+        payload,
+        app.config["SECRET_KEY"],
+        algorithm="HS256"
+    )
+
+    return jsonify({
+        "success": True,
+        "message": "Login successful",
+        "token": token
+    })
+
 
 @app.route("/history/<int:id>", methods=["DELETE"])
+@token_required
 def delete_report(id):
     report = Report.query.get(id)
+
+    if report.user_id != request.user_id:
+        return jsonify({"message": "Unauthorized"}), 403
 
     if not report:
         return jsonify({
@@ -163,6 +309,7 @@ def delete_report(id):
 
     
 @app.route("/generate-pdf", methods=["POST"])
+@token_required
 def generate_pdf():
     data = request.json
     ai_result = data.get("result", "")
@@ -215,9 +362,13 @@ def generate_pdf():
     )
 
 @app.route("/history", methods=["GET"])
+@token_required
 def get_report_history():
-    reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
+    # reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
+    reports = Report.query.filter_by(user_id=request.user_id).all()
     print("hello durgesh")
+    print("AUTH HEADER:", request.headers.get("Authorization"))
+
     history_list = []
 
     for report in reports:
@@ -236,9 +387,13 @@ def get_report_history():
     })
 
 @app.route("/history/<int:report_id>", methods=["GET"])
+@token_required
 def get_single_report(report_id):
     # report = Report.query.get(report_id)
     report = db.session.get(Report, report_id)
+
+    if report.user_id != request.user_id:
+        return jsonify({"message": "Unauthorized"}), 403
 
     if not report:
         return jsonify({
@@ -266,10 +421,11 @@ def download_pdf(filename):     #filename comes from URL (route)
     )
     
 
-
-
 @app.route("/upload-report", methods=["POST"])
+@token_required
 def upload_report():
+    print("AUTH HEADER:", request.headers.get("Authorization"))
+
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
@@ -308,7 +464,8 @@ def upload_report():
         new_report = Report(
             extracted_text=extracted_text,
             pdf_path=path,
-            ai_summary=ai_output
+            ai_summary=ai_output,
+            user_id=request.user_id
         )
         db.session.add(new_report)
         db.session.commit()

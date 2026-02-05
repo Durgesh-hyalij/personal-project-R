@@ -72,7 +72,10 @@ async function uploadPDF() {
     try {           // Sends the file to the server
         const response = await fetch("http://127.0.0.1:5000/upload-report", {
             method: "POST",
-            body: formData
+            headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+  body: formData
         });
 
         const data = await response.json();   //converts the raw computer data into a readable JavaScript object (usually containing the AI's answer).

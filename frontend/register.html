@@ -1,39 +1,40 @@
 <!--<!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+  <title>Register</title>
 </head>
 <body>
 
-<h2>Login</h2>
+<h2>Register</h2>
 
+<input type="text" id="name" placeholder="Name"><br><br>
 <input type="email" id="email" placeholder="Email"><br><br>
 <input type="password" id="password" placeholder="Password"><br><br>
-<button id="loginBtn">Login</button>
-<button><a href="register.html">Register</a></button>
+
+<button id="registerBtn">Register</button>
+<button><a href="login.html">Login</a></button>
+
 
 <p id="msg"></p>
 
 <script>
-document.getElementById("loginBtn").addEventListener("click", () => {
+document.getElementById("registerBtn").addEventListener("click", () => {
+  const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  fetch("http://127.0.0.1:5000/login", {
+  fetch("http://127.0.0.1:5000/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ name, email, password })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      // 🔐 Save token
-      localStorage.setItem("token", data.token);
-
-      // ➡ Redirect
-      window.location.href = "index.html";
+      alert("Registration successful");
+      window.location.href = "login.html";
     } else {
       document.getElementById("msg").innerText = data.message;
     }
@@ -42,14 +43,15 @@ document.getElementById("loginBtn").addEventListener("click", () => {
 </script>
 
 </body>
-</html> -->
+</html>
+-->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Project-R</title>
+  <title>Register | Project-R</title>
   <style>
     :root {
       --primary-color: #4f46e5;
@@ -79,14 +81,8 @@ document.getElementById("loginBtn").addEventListener("click", () => {
 
     h2 {
       color: #333;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-
-    p.subtitle {
-      color: #777;
-      font-size: 14px;
       margin-bottom: 1.5rem;
+      font-weight: 600;
     }
 
     input {
@@ -95,15 +91,19 @@ document.getElementById("loginBtn").addEventListener("click", () => {
       margin: 10px 0;
       border: 1px solid #ddd;
       border-radius: 8px;
-      box-sizing: border-box;
+      box-sizing: border-box; /* Ensures padding doesn't affect width */
       font-size: 14px;
-      transition: all 0.3s ease;
+      transition: border-color 0.3s ease;
     }
 
     input:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn-container {
+      margin-top: 1rem;
     }
 
     button {
@@ -116,7 +116,6 @@ document.getElementById("loginBtn").addEventListener("click", () => {
       cursor: pointer;
       font-size: 16px;
       font-weight: 500;
-      margin-top: 1rem;
       transition: background 0.3s ease;
     }
 
@@ -124,7 +123,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
       background-color: var(--primary-hover);
     }
 
-    .register-link {
+    .login-link {
       display: block;
       margin-top: 1.5rem;
       color: #666;
@@ -132,7 +131,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
       font-size: 14px;
     }
 
-    .register-link strong {
+    .login-link strong {
       color: var(--primary-color);
     }
 
@@ -140,59 +139,58 @@ document.getElementById("loginBtn").addEventListener("click", () => {
       margin-top: 1rem;
       font-size: 14px;
       color: #d32f2f;
-      font-weight: 500;
+      min-height: 20px;
     }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Welcome Back</h2>
-  <p class="subtitle">Please enter your details to login</p>
+  <h2>Create Account</h2>
   
+  <input type="text" id="name" placeholder="Full Name" required>
   <input type="email" id="email" placeholder="Email Address" required>
   <input type="password" id="password" placeholder="Password" required>
 
-  <button id="loginBtn">Login</button>
+  <div class="btn-container">
+    <button id="registerBtn">Sign Up</button>
+  </div>
 
   <p id="msg"></p>
 
-  <a href="register.html" class="register-link">Don't have an account? <strong>Register</strong></a>
+  <a href="login.html" class="login-link">Already have an account? <strong>Login</strong></a>
 </div>
 
 <script>
-document.getElementById("loginBtn").addEventListener("click", () => {
+document.getElementById("registerBtn").addEventListener("click", () => {
+  const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  if (!email || !password) {
-    document.getElementById("msg").innerText = "Please enter both email and password.";
+  // Basic validation feedback
+  if(!name || !email || !password) {
+    document.getElementById("msg").innerText = "Please fill in all fields.";
     return;
   }
 
-  // Clear previous message
-  document.getElementById("msg").innerText = "";
-
-  fetch("http://127.0.0.1:5000/login", {
+  fetch("http://127.0.0.1:5000/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ name, email, password })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      // 🔐 Save token
-      localStorage.setItem("token", data.token);
-      // ➡ Redirect
-      window.location.href = "index.html";
+      alert("Registration successful!");
+      window.location.href = "login.html";
     } else {
       document.getElementById("msg").innerText = data.message;
     }
   })
   .catch(err => {
-    document.getElementById("msg").innerText = "Unable to connect to server.";
+    document.getElementById("msg").innerText = "Connection error. Is the Flask server running?";
   });
 });
 </script>
