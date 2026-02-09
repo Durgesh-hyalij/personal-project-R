@@ -16,6 +16,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 import jwt
 from functools import wraps
+from auth import hash_password, verify_password, create_token, get_current_user
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -193,23 +194,13 @@ def login():
             "message": "Invalid email or password"
         }), 401
 
-    if not check_password_hash(user.password_hash, password):
+    if not verify_password(user.password_hash, password):
         return jsonify({
             "success": False,
             "message": "Invalid email or password"
         }), 401
-
-    payload = {
-        "user_id": user.id,
-        "email": user.email,
-        "exp": datetime.utcnow() + timedelta(hours=24)
-    }
-
-    token = jwt.encode(
-        payload,
-        app.config["SECRET_KEY"],
-        algorithm="HS256"
-    )
+    
+    token = create_token(user.id , user.is_admin)
 
     return jsonify({
         "success": True,
