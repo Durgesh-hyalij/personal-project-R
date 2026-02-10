@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Todo App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-danger">
+        <div class="container">
+            <a class="navbar-brand" href="/">Todo App - Admin</a>
+            <div class="navbar-nav flex-row gap-3">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h3 id="total-users">0</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h3 id="total-todos">0</h3>
+                        <p class="mb-0">Total Todos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h3 id="completed-todos">0</h3>
+                        <p class="mb-0">Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <h3 id="pending-todos">0</h3>
+                        <p class="mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">All Users</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>is_admin</th>
+                            <th>created_at</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- All Todos Table -->
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">All Todos</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>pdf_path</th>
+                            <th>created_at</th>
+                        </tr>
+                    </thead>
+                    <tbody id="todos-table">
+                        <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        //if (!token || !user || !user.is_admin) {
+          //  alert('Admin access required!');
+          //  window.location.href = '/login';
+        //}
+
+        async function api(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(url, options);
+
+            if (res.status === 401) {
+                localStorage.clear();
+                window.location.href = '/login';
+                return null;
+            }
+
+            if (res.status === 403) {
+                alert('Admin access required!');
+                window.location.href = '/';
+                return null;
+            }
+
+            return await res.json();
+        }
+
+        // Load stats, users, and todos
+        loadStats();
+        loadUsers();
+        loadTodos();
+
+        async function loadStats() {
+            const data = await api('/api/admin/stats');
+            if (!data) return;
+
+            document.getElementById('total-users').textContent = data.total_users;
+            document.getElementById('total-todos').textContent = data.total_lab_reports;
+            document.getElementById('completed-todos').textContent = data.upload_reports;
+        }
+
+        async function loadUsers() {
+            const data = await api('/api/admin/users');
+            if (!data) return;
+
+            const tbody = document.getElementById('users-table');
+
+            if (data.users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.users.map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td>${u.is_admin ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-secondary">User</span>'}</td>
+                    <td>${u.completed_todos}/${u.total_todos}</td>
+                    <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                    <td>
+                        ${u.id === user.id
+                            ? '<span class="text-muted">You</span>'
+                            : `<button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')">Delete</button>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadTodos() {
+            const data = await api('/api/admin/reports');  //last time here 
+            if (!data) return;
+
+            const tbody = document.getElementById('todos-table');
+
+            if (data.todos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No todos found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.reports.map(t => `
+                <tr>
+                    <td>${t.id}</td>
+                    <td><span class="badge bg-secondary">${escapeHtml(t.username)}</span></td>
+                    <td>${escapeHtml(t.reports)}</td>
+                    <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Delete user "${username}" and all their todos?`)) return;
+
+            await api(`/api/admin/users/${userId}`, 'DELETE');
+            loadStats();
+            loadUsers();
+            loadTodos();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
