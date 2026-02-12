@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel | Project-R</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: #1e293b;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar button {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #e2e8f0;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .admin {
+            background: #16a34a;
+            color: white;
+        }
+
+        .user {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div><strong>Admin Dashboard</strong></div>
+    <div>
+        <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3>All Registered Users</h3>
+        <p id="error-msg" class="error"></p>
+
+        <table id="users-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 🔐 Get token from localStorage
+    const token = localStorage.getItem("token");
+    console.log("inside token" + token)
+    const user  = JSON.parse(localStorage.getItem('user') || 'null');
+
+
+    // 🚨 If no token → redirect to login
+    if (!token) {
+        window.location.href = "login.html";
+    }
+
+    // 🔎 Decode token to check if admin
+    function parseJwt(token) {
+        const base64Payload = token.split('.')[1];
+        const payload = atob(base64Payload);
+        return JSON.parse(payload);
+    }
+
+    const decoded = parseJwt(token);
+
+    // 🚨 If not admin → block access
+    if (!decoded.is_admin) {
+        alert("Access denied. Admins only.");
+        window.location.href = "login.html";
+    }
+
+    // 📡 Fetch all users from backend
+    async function loadUsers() {
+        try {
+            const response = await fetch("http://127.0.0.1:5000/api/admin/users", {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (response.status === 403) {
+                document.getElementById("error-msg").innerText =
+                    "You are not authorized to view this page.";
+                return;
+            }
+
+            const data = await response.json();
+
+            const tableBody = document.querySelector("#users-table tbody");
+            tableBody.innerHTML = "";
+
+            data.users.forEach(user => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>
+                            <span class="badge ${user.is_admin ? 'admin' : 'user'}">
+                                ${user.is_admin ? 'Admin' : 'User'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+            document.getElementById("error-msg").innerText =
+                "Failed to load users. Server error.";
+        }   
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    // 🚀 Load users when page opens
+    loadUsers();
+</script>
+
+</body>
+</html>

@@ -1,49 +1,40 @@
-// const output = document.getElementById("output");
+    const token = localStorage.getItem('token');
+    console.log(`here is ur token ${token}`)
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    console.log(`here is ur user ${user}`)
 
-// console.log("script loaded ✅");
+    // ==============================
+    // AUTH CHECK
+    // ==============================
+    if (!token || !user) {
+        window.location.href = 'login.html';
+    }
 
-// document.getElementById("getBtn").addEventListener("click", () => {
-//     console.log("Get button clicked");
+    // Show admin link if admin
+    if (user.is_admin) {
+        document.getElementById('nav-links').innerHTML = `
+            <span class="navbar-text">Hello, ${user.username}</span>
+            <a class="nav-link" href="admin.html">Admin</a>
+            <a class="nav-link" href="login.html" onclick="logout()">Logout</a>
+        `;
+    console.log(`your code is inside the user.is_admin`)
 
-//     fetch("http://127.0.0.1:5000/api/hello")
-//         .then(res => {
-//             console.log("Response received");
-//             return res.json();
-//         })
-//         .then(data => {
-//             console.log(data);
-//             output.innerText = data.message;
-//         })
-//         .catch(err => console.error("Error:", err));
-// });
+    } else {
+        document.getElementById('user-info').textContent =
+            `Hello, ${user.username}`;
+    console.log(`your code is inside the else`)
 
-
-// // POST request
-// document.getElementById("sendBtn").addEventListener("click", () => {
-//     fetch("http://127.0.0.1:5000/api/send", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             name: "Durgesh",
-//             project: "Flask Frontend Backend"
-//         })
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-//         console.log(data);
-//         alert("Data sent successfully ✅");
-//     });
-// });
-
-
+    }
+        
 async function uploadPDF() {
     const button = document.getElementById("uploadBtn");
     const fileInput = document.getElementById("pdfFile");
     const loader = document.getElementById("loader");
     const result = document.getElementById("result");
     const progress = document.getElementById("progress");
+    const actionButtons = document.getElementById('action-buttons');
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
 
     if (!fileInput.files.length) {
         alert("Please select a PDF file");
@@ -113,5 +104,14 @@ async function uploadPDF() {
 //         // Line breaks
 //         .replace(/\n/g, "<br>");
 // }
+function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
 
+ function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 }

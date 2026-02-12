@@ -5,7 +5,7 @@ import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
 from models import db, init_db, Report , User
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from flask import send_from_directory
 from flask import request, send_file
@@ -16,7 +16,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 import jwt
 from functools import wraps
-from auth import hash_password, verify_password, create_token, get_current_user
+from auth import hash_password, verify_password, create_token, get_current_user, get_admin_user
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -45,6 +45,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_demo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
+init_db(app)
+
 def extract_text_from_pdf(pdf_path):  # Iterates through all PDF pages to extract and combine their text into a single string
     reader = PdfReader(pdf_path)
     text = ""
@@ -60,51 +62,79 @@ class PDF(FPDF):
         self.set_font("Arial", size=9)
         self.cell(0, 10, "© Project-R | AI Generated", align="C")
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
+with app.app_context():   # with app.app_context() is required whenever you use Flask features outside a request, so Flask knows which app is active. eg - models , extentions , etc
+    # db.create_all()
 
-        token = None
+    admin = User.query.filter_by(email='admin@example.com').first()
+    if not admin:
+        admin = User(
+            name='admin',
+            email='admin@example.com',
+            password_hash=hash_password('admin123'),
+            is_admin=True  # This makes user an admin
+        )
+        db.session.add(admin)
+        db.session.commit()
+        print('\n' + '='*50)
+        print('DEFAULT ADMIN USER CREATED:')
+        print('Email:    admin@example.com')
+        print('Password: admin123')
+        print('='*50 + '\n')
+    else:
+        print('\n' + '='*50)
+        print('ADMIN LOGIN:')
+        print('Email:    admin@example.com')
+        print('Password: admin123')
+        print('='*50 + '\n')
 
-        # 1️⃣ Read Authorization header
-        auth_header = request.headers.get("Authorization")
 
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
 
-        if not token:
-            return jsonify({
-                "success": False,
-                "message": "Token is missing"
-            }), 401
 
-        try:
-            # 2️⃣ Decode token
-            decoded = jwt.decode(
-                token,
-                app.config["SECRET_KEY"],
-                algorithms=["HS256"]
-            )
+# def token_required(f):
+#     @wraps(f)
+#     def decorated(*args, **kwargs):
 
-            # 3️⃣ Attach user_id to request
-            request.user_id = decoded["user_id"]
+#         token = None
 
-        except jwt.ExpiredSignatureError:
-            return jsonify({
-                "success": False,
-                "message": "Token expired"
-            }), 401
+#         # 1️⃣ Read Authorization header
+#         auth_header = request.headers.get("Authorization")
 
-        except jwt.InvalidTokenError:
-            return jsonify({
-                "success": False,
-                "message": "Invalid token"
-            }), 401
+#         if auth_header and auth_header.startswith("Bearer "):
+#             token = auth_header.split(" ")[1]
 
-        # 4️⃣ Token valid → allow request
-        return f(*args, **kwargs)
+#         if not token:
+#             return jsonify({
+#                 "success": False,
+#                 "message": "Token is missing"
+#             }), 401
 
-    return decorated
+#         try:
+#             # 2️⃣ Decode token
+#             decoded = jwt.decode(
+#                 token,
+#                 app.config["SECRET_KEY"],
+#                 algorithms=["HS256"]
+#             )
+
+#             # 3️⃣ Attach user_id to request
+#             request.user_id = decoded["user_id"]
+
+#         except jwt.ExpiredSignatureError:
+#             return jsonify({
+#                 "success": False,
+#                 "message": "Token expired"
+#             }), 401
+
+#         except jwt.InvalidTokenError:
+#             return jsonify({
+#                 "success": False,
+#                 "message": "Invalid token"
+#             }), 401
+
+#         # 4️⃣ Token valid → allow request
+#         return f(*args, **kwargs)
+
+#     return decorated
 
 
 @app.route("/test")
@@ -205,13 +235,45 @@ def login():
     return jsonify({
         "success": True,
         "message": "Login successful",
-        "token": token
+        "token": token,
+        "user": {
+            'id' : user.id,
+            'username' : user.name,
+            'email': user.email,
+            'is_admin' : user.is_admin
+        }
+    })
+
+
+@app.route('/api/admin/users', methods=['GET'])
+def get_all_users():
+    # Step 1: Check if user is logged in AND is admin
+    current_user, error = get_admin_user()
+    print("current user in admin", current_user)
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+    
+    users = User.query.all()
+
+    return jsonify({
+        "users": [{
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "is_admin": u.is_admin
+        } for u in users]
     })
 
 
 @app.route("/history/<int:id>", methods=["DELETE"])
-@token_required
+# @token_required
 def delete_report(id):
+    # Step 1: Check if user is logged in AND is admin
+    current_user, error = get_current_user()
+    print("current user in admin", current_user)
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+    
     report = Report.query.get(id)
 
     if report.user_id != request.user_id:
@@ -300,7 +362,7 @@ def delete_report(id):
 
     
 @app.route("/generate-pdf", methods=["POST"])
-@token_required
+# @token_required
 def generate_pdf():
     data = request.json
     ai_result = data.get("result", "")
@@ -353,8 +415,14 @@ def generate_pdf():
     )
 
 @app.route("/history", methods=["GET"])
-@token_required
+# @token_required
 def get_report_history():
+    # Step 1: Check if user is logged in AND is admin   
+    current_user, error = get_current_user()
+    print("current user in admin", current_user)
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+    
     # reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
     reports = Report.query.filter_by(user_id=request.user_id).all()
     print("hello durgesh")
@@ -378,7 +446,7 @@ def get_report_history():
     })
 
 @app.route("/history/<int:report_id>", methods=["GET"])
-@token_required
+# @token_required
 def get_single_report(report_id):
     # report = Report.query.get(report_id)
     report = db.session.get(Report, report_id)
@@ -413,7 +481,7 @@ def download_pdf(filename):     #filename comes from URL (route)
     
 
 @app.route("/upload-report", methods=["POST"])
-@token_required
+# @token_required
 def upload_report():
     print("AUTH HEADER:", request.headers.get("Authorization"))
 
@@ -472,5 +540,5 @@ def upload_report():
 
 
 if __name__ == "__main__":
-    init_db(app)
+    # init_db(app)
     app.run(debug=True)
