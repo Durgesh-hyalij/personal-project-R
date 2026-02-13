@@ -380,7 +380,7 @@ def generate_pdf():
     pdf.add_page()
 
     # LOGO
-    pdf.image("static/logo.png", x=10, y=8, w=25)
+    pdf.image("backend/static/logo.png", x=10, y=8, w=25)
     # pdf.image(logo_path, x=10, y=8, w=25)
 
     # TITLE
