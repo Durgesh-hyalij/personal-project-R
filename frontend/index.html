@@ -1,40 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Medical Report Analyzer</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="container">
-    <h2>Upload Medical Report (PDF)</h2>
-
-    <input type="file" id="pdfFile" accept=".pdf">
-
-    <button id="uploadBtn" onclick="uploadPDF()">Upload & Analyze</button>
-    <button><a href="welcome.html" > Go Back </a></button>
-
-    <!-- Loader ->
-    <div id="loader" class="hidden">
-        <div class="spinner"></div>
-        <p>Analyzing report, please wait...</p>
-
-        <div class="progress-bar">
-            <div id="progress"></div>
-        </div>
-    </div>
-
-    <h3>AI Explanation</h3>
-    <div id="result" class="result-box"></div>
-</div>
-
-<script src="script.js"></script>
-</body>
-</html>    -->
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,50 +17,36 @@
 </head>
 <body>
 
-<!-- Sidebar 
-<div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <h4>🩺 Project-R</h4>
-    </div>
-
-    <ul class="sidebar-menu">
-        <li class="active">
-            <i class="bi bi-upload"></i>
-            <span>Phase 1: Report Analysis</span>
-        </li>
-    </ul>
-    <ul class="sidebar-menu">
-        <li class="active">
-            <i class="bi bi-upload"></i>
-            <span>Phase 2: Report Analysis</span>
-        </li>
-    </ul>
-</div> -->
-
 <!-- Main Content -->
 <div id="main">
 
     <!-- Top Navbar -->
-    <div class="header-container topbar">
-        <!-- <i class="bi bi-list menu-icon" onclick="toggleSidebar()"></i> -->
-    <h4>🩺 Project-R</h4>
-    <h5 class="mb-0">[AI-Powered Medical Report Analyzer]</h5>
+    <div class="header-container topbar d-flex align-items-center px-3">
 
-    <div class="ms-auto">
-        <a href="history copy.html" class="btn btn-outline-light btn-sm">
-            History Page
-        </a>
-    </div>
+        <h4 class="me-2">🩺 Project-R</h4>
+        <h5 class="mb-0">[AI-Powered Medical Report Analyzer]</h5>
 
-        <!-- <span class="topbar-title">AI-Powered Medical Report Analyzer</span> -->
+        <div class="ms-auto d-flex align-items-center gap-3">
+
+            <a href="history.html" class="btn btn-outline-light btn-sm">
+                History Page
+            </a>
+
+            <!--v. v. Imp last 4 lines -->
+
+            <!-- Dynamic Username -->
+            <span class="navbar-text" id="user-info"></span>
+
+            <!-- Dynamic Links (Admin / Logout etc) -->
+            <div class="navbar-nav flex-row gap-3" id="nav-links"></div>
+
+        </div>
     </div>
 
     <!-- Content -->
-    <div class="content container">
+    <div class="content container mt-4">
 
-        <!-- Header -->
         <div class="text-center mb-4">
-            
             <h2 class="fw-bold">Upload Medical Report</h2>
             <p class="text-muted">
                 Get a simple, patient-friendly explanation of your test results
@@ -113,7 +62,9 @@
 
                 <input type="file" id="pdfFile" accept=".pdf" class="form-control mb-3">
 
-                <button id="uploadBtn" class="btn btn-primary w-100" onclick="uploadPDF()">
+                <button id="uploadBtn"
+                        class="btn btn-primary w-100"
+                        onclick="uploadPDF()">
                     Analyze Report
                 </button>
             </div>
@@ -126,7 +77,9 @@
                 <p>Analyzing report, please wait…</p>
 
                 <div class="progress">
-                    <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated"></div>
+                    <div id="progress"
+                         class="progress-bar progress-bar-striped progress-bar-animated">
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,20 +96,13 @@
             </div>
         </div>
 
-        <!--<button><a href="history.html"> History Page </a></button>-->
-
     </div>
 </div>
 
-<!-- Script -->
-<script>
-function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
-    document.getElementById("main").classList.toggle("shift");
-}
-</script>
+<!-- Scripts -->
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!--markdown js library-->
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="script.js"></script>
 
 </body>

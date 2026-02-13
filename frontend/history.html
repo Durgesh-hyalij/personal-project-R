@@ -1,442 +1,375 @@
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <meta charset="UTF-8">
-  <title>Report History</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Report History</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-    }
+<!-- Markdown parser for AI summary & extracted text -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    /* ---------- TOP NAVBAR (NEW) ---------- */
-    .topbar {
-      height: 60px;
-      background: #0d47a1;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+<style>
+/* ===============================
+   BASIC PAGE STYLING
+================================ */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
 
-    .topbar h4 {
-      margin: 0;
-      font-size: 18px;
-    }
+/* ===============================
+   TOP NAVBAR
+================================ */
+.topbar {
+  height: 60px;
+  background: #0d47a1;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
 
-    .topbar span {
-      margin-left: 10px;
-      font-size: 14px;
-      opacity: 0.9;
-    }
+.topbar .right {
+  margin-left: auto;
+}
 
-    .topbar .right {
-      margin-left: auto;
-    }
-
-    .topbar a {
-      color: #ffffff;
-      text-decoration: none;
-      border: 1px solid #ffffff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    .topbar a:hover {
-      background: rgba(255,255,255,0.15);
-    }
-
-    /* ---------- MAIN LAYOUT ---------- */
-    .layout {
-      display: flex;
-      height: calc(100vh - 60px); /* subtract navbar height */
-    }
-
-    /* LEFT SIDEBAR */
-    .sidebar {
-      width: 280px;
-      background: #ffffff;
-      border-right: 1px solid #ddd;
-      padding: 10px;
-      overflow-y: auto;
-    }
-
-    .sidebar h3 {
-      margin: 10px 0;
-    }
-
-    .report-item {
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      border: 1px solid #eee;
-    }
-
-    .report-item:hover,
-    .report-item.active {
-      background: #e8f0ff;
-    }
-
-    /* CENTER + RIGHT PANELS */
-    .panel {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-    }
-
-    .panel h3 {
-      margin-top: 0;
-    }
-
-    .content-box {
-      background: #ffffff;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      white-space: pre-wrap;
-      min-height: 85%;
-    }
-      /* ---------- Sidebar Color Theme ---------- */
-
-    /* Sidebar background */
-    .sidebar {
-      background: #f7f9fc; /* soft medical blue-grey */
-    }
-
-    /* Report item default */
-    .report-item {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      transition: background 0.2s ease, border 0.2s ease;
-    }
-
-    /* Hover effect */
-    .report-item:hover {
-      background: #eef4ff;
-      border-color: #c7d8ff;
-    }
-
-    /* Active (selected) report */
-    .report-item.active {
-      background: #dbe9ff;
-      border-left: 4px solid #0d47a1; /* brand blue */
-      font-weight: 600;
-    }
-
-    /* Sidebar title */
-    .sidebar h3 {
-      color: #0d47a1;
-      font-weight: 600;
-    }
-
-    /* Optional: scrollbar styling (nice polish) */
-    .sidebar::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .sidebar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 10px;
-    }
-
-    .sidebar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    /* pdfbutton css */
-    /* ---------- AI PDF DOWNLOAD BUTTON ---------- */
-#downloadAiPdf {
-  background: #ffffff;
+.topbar button, .topbar a {
+  margin-left: 10px;
+  background: white;
   color: #0d47a1;
-  border: 2px solid #ffffff;
-  padding: 8px 14px;
+  border: none;
+  padding: 7px 12px;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-/* Hover effect */
-#downloadAiPdf:hover {
-  background: #e3f2fd;
-  color: #0d47a1;
+/* ===============================
+   MAIN LAYOUT
+================================ */
+.layout {
+  display: flex;
+  height: calc(100vh - 60px);
 }
 
-/* Click (active) effect */
-#downloadAiPdf:active {
-  transform: scale(0.96);
+/* ===============================
+   SIDEBAR (REPORT LIST)
+================================ */
+.sidebar {
+  width: 280px;
+  background: #f7f9fc;
+  border-right: 1px solid #ddd;
+  padding: 10px;
+  overflow-y: auto;
 }
 
-/* Focus (keyboard accessibility) */
-#downloadAiPdf:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+.report-item {
+  background: white;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
 }
 
-/* Markdown styling */
-.content-box h1, .content-box h2, .content-box h3 {
-  color: #0d47a1;
-  margin-top: 16px;
+.report-item:hover {
+  background: #eef4ff;
 }
 
-.content-box ul {
-  padding-left: 20px;
-}
-
-.content-box li {
-  margin-bottom: 6px;
-}
-
-.content-box strong {
+.report-item.active {
+  background: #dbe9ff;
+  border-left: 4px solid #0d47a1;
   font-weight: 600;
 }
 
-.content-box code {
-  background: #f1f5f9;
-  padding: 2px 6px;
-  border-radius: 4px;
+/* ===============================
+   CONTENT PANELS
+================================ */
+.panel {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
 }
 
+.content-box {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  white-space: pre-wrap;
+}
 
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+/* ===============================
+   PDF ACTION BAR
+================================ */
+#pdfSection {
+  display: none;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
 
-  </head>
-  <body>
+#deleteReportBtn {
+  color: red;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
 
-  <!-- 🔵 NAVBAR (NEW) -->
-  <div class="topbar">
-    <h4>🩺 Project-R</h4>
-    <span>[AI-Powered Medical Report Analyzer]</span>
+/* ===============================
+   TOGGLE BUTTON
+================================ */
+#toggleExtractedBtn {
+  margin: 10px 0;
+  padding: 6px 10px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  cursor: pointer;
+}
+</style>
+</head>
 
-    <div class="right">
-      <a href="index.html">Home Page</a>
-    </div>
+<body>
 
-    <div class="right">
-      <button id="downloadAiPdf">Download AI Summary PDF</button>
-    </div>
-
-  </div>
-
-
-  
-  <!-- 🔹 HISTORY LAYOUT -->
-  <div class="layout">
-
-    <!-- LEFT -->
-    <div class="sidebar" id="reportList">
-      <h3>Reports</h3>
-    </div>
-
-    <!-- CENTER -->
-    <div class="panel">
-      <h3>Extracted Text</h3>
-      
-      <!-- PDF ACTION BAR -->
-      <div id="pdfSection" style="
-        display:none;
-        background:#ffffff;
-        border-bottom:1px solid #ddd;
-        padding:10px 20px;
-        font-size:14px;
-        display:flex;
-        align-items:center;
-        gap:15px;
-      ">
-        📄 <strong id="pdfName"></strong>
-
-        <a id="viewPdf"
-          href="#"
-          target="_blank"
-          style="color:#0d47a1; text-decoration:none;">
-          View
-        </a>
-
-        <a id="downloadPdf"
-          href="#"
-          download
-          style="color:#0d47a1; text-decoration:none;">
-          Download
-        </a>
-        <button id="deleteReportBtn" style="color:red;">
-          🗑 Delete Report
-        </button>
-
-      </div>
-
-      <div id="extractedText" class="content-box">
-        Hello!!! please select the side history to view your report detail
-      </div>
-    </div>
-
-    
-    <!-- RIGHT -->
-    <div class="panel">
-      <h3>AI Summary</h3>
-      <!-- PDF ACTION BAR -->
-      
-      <div id="aiSummary" class="content-box">
-        Hello!!! please select the side history to view your AI details
-      </div>
-    </div>
-
-  </div>
-
- <script>
-  // ==============================
-  // ELEMENT REFERENCES
-  // ==============================
-  const reportList = document.getElementById("reportList");
-  const extractedTextDiv = document.getElementById("extractedText");
-  const aiSummaryDiv = document.getElementById("aiSummary");
-
-  const pdfSection = document.getElementById("pdfSection");
-  const pdfNameSpan = document.getElementById("pdfName");
-  const downloadPdfLink = document.getElementById("downloadPdf");
-  const viewPdfLink = document.getElementById("viewPdf");
-
-  const downloadAiBtn = document.getElementById("downloadAiPdf");
-
-  // ==============================
-  // LOAD REPORT HISTORY
-  // ==============================
-  fetch("http://127.0.0.1:5000/history")
-    .then(res => res.json())
-    .then(data => {
-      reportList.innerHTML += "<h3>Reports</h3>";
-
-      data.data.forEach(report => {
-        const div = document.createElement("div");
-        div.className = "report-item";
-        div.innerHTML = `
-          <strong>${report.pdf_name}</strong><br>
-
-          <small>${report.created_at}</small>
-        `;
-        div.onclick = () => loadReport(report.id, div);
-        reportList.appendChild(div);
-      });
-    })
-    .catch(err => console.error("History load error:", err));
-
-  // ==============================
-  // LOAD SINGLE REPORT
-  // ==============================
-  function loadReport(id, element) {
-    document.querySelectorAll(".report-item")
-      .forEach(i => i.classList.remove("active"));
-    element.classList.add("active");
-    currentReportId = id;
-
-
-    fetch(`http://127.0.0.1:5000/history/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        // Show extracted text & AI summary
-        //extractedTextDiv.textContent = data.data.extracted_text;
-        extractedTextDiv.innerHTML = marked.parse(data.data.extracted_text);
-        //aiSummaryDiv.textContent = data.data.ai_summary || "No AI summary available";
-        aiSummaryDiv.innerHTML = marked.parse(data.data.ai_summary || "No AI summary available");
-
-        // Original PDF actions
-        const pdfUrl =
-          `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
-
-        pdfNameSpan.textContent = data.data.pdf_name;
-        viewPdfLink.href = pdfUrl;
-        downloadPdfLink.href = pdfUrl;
-
-        pdfSection.style.display = "flex";
-      })
-      .catch(err => console.error("Report load error:", err));
+<!-- ===============================
+     AUTH GUARD (VERY IMPORTANT)
+================================ -->
+<script>
+  // If token is missing → force login
+  if (!localStorage.getItem("token")) {
+    window.location.href = "login.html";
   }
+</script>
 
-  // ==============================
-  // DOWNLOAD AI SUMMARY AS PDF
-  // ==============================
-  if (downloadAiBtn) {
-    downloadAiBtn.addEventListener("click", () => {
+<!-- ===============================
+     NAVBAR
+================================ -->
+<div class="topbar">
+  <h3>🩺 Project-R</h3>
 
-      const aiText = aiSummaryDiv.textContent.trim();
+  <div class="right">
+    <a href="index.html">Home</a>
+    <button id="downloadAiPdf">Download AI PDF</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
 
-      if (!aiText || aiText.startsWith("Hello")) {
-        alert("No AI summary available to download.");
-        return;
-      }
+<!-- ===============================
+     MAIN CONTENT
+================================ -->
+<div class="layout">
 
-      fetch("http://127.0.0.1:5000/generate-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result: aiText })
-      })
-      .then(res => res.blob())
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "AI_Summary.pdf";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      })
-      .catch(err => console.error("AI PDF error:", err));
-    });
+  <!-- LEFT: REPORT LIST -->
+  <div class="sidebar" id="reportList">
+    <h3>Reports</h3>
+  </div>
 
-    //start  pdf- generate js logic
-    const deleteBtn = document.getElementById("deleteReportBtn");
+  <!-- RIGHT: REPORT DETAILS -->
+  <div class="panel">
 
+    <!-- PDF ACTION BAR -->
+    <div id="pdfSection">
+      📄 <strong id="pdfName"></strong>
+      <a id="viewPdf" target="_blank">View</a>
+      <a id="downloadPdf" download>Download</a>
+      <button id="deleteReportBtn">🗑 Delete</button>
+    </div>
+
+    <h3>AI Summary (Important)</h3>
+    <div id="aiSummary" class="content-box">
+      Select a report to view AI summary
+    </div>
+
+    <button id="toggleExtractedBtn">Show full extracted text</button>
+
+    <h3 id="extractedTitle" style="display:none;">Full Extracted Text</h3>
+    <div id="extractedText" class="content-box" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ===============================
+     JAVASCRIPT LOGIC
+================================ -->
+<script>
+/* ===============================
+   GLOBAL VARIABLES
+================================ */
+let currentReportId = null;
+let extractedVisible = false;
+
+// DOM references
+const reportList = document.getElementById("reportList");
+const aiSummaryDiv = document.getElementById("aiSummary");
+const extractedTextDiv = document.getElementById("extractedText");
+const extractedTitle = document.getElementById("extractedTitle");
+const toggleBtn = document.getElementById("toggleExtractedBtn");
+
+const pdfSection = document.getElementById("pdfSection");
+const pdfNameSpan = document.getElementById("pdfName");
+const viewPdfLink = document.getElementById("viewPdf");
+const downloadPdfLink = document.getElementById("downloadPdf");
+const deleteBtn = document.getElementById("deleteReportBtn");
+
+const downloadAiBtn = document.getElementById("downloadAiPdf");
+const logoutBtn = document.getElementById("logoutBtn");
+
+/* ===============================
+   LOAD REPORT HISTORY
+================================ */
+fetch("http://127.0.0.1:5000/history", {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+})
+.then(res => {
+  // If token expired or invalid
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+    return null;
+  }
+  return res.json();
+})
+.then(data => {
+  if (!data) return;
+
+  data.data.forEach(report => {
+    const div = document.createElement("div");
+    div.className = "report-item";
+    div.innerHTML = `
+      <strong>${report.pdf_name}</strong><br>
+      <small>${report.created_at}</small>
+    `;
+    div.onclick = () => loadReport(report.id, div);
+    reportList.appendChild(div);
+  });
+});
+
+/* ===============================
+   LOAD SINGLE REPORT
+================================ */
+function loadReport(id, element) {
+  document.querySelectorAll(".report-item")
+    .forEach(i => i.classList.remove("active"));
+
+  element.classList.add("active");
+  currentReportId = id;
+
+  fetch(`http://127.0.0.1:5000/history/${id}`, {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    aiSummaryDiv.innerHTML = marked.parse(
+      data.data.ai_summary || "No AI summary available"
+    );
+
+    extractedTextDiv.innerHTML = marked.parse(
+      data.data.extracted_text
+    );
+
+    // Reset extracted text view
+    extractedVisible = false;
+    extractedTextDiv.style.display = "none";
+    extractedTitle.style.display = "none";
+    toggleBtn.textContent = "Show full extracted text";
+
+    // PDF links
+    const pdfUrl = `http://127.0.0.1:5000/download/${data.data.pdf_name}`;
+    pdfNameSpan.textContent = data.data.pdf_name;
+    viewPdfLink.href = pdfUrl;
+    downloadPdfLink.href = pdfUrl;
+    pdfSection.style.display = "flex";
+  });
+}
+
+/* ===============================
+   TOGGLE EXTRACTED TEXT
+================================ */
+toggleBtn.addEventListener("click", () => {
+  extractedVisible = !extractedVisible;
+  extractedTextDiv.style.display = extractedVisible ? "block" : "none";
+  extractedTitle.style.display = extractedVisible ? "block" : "none";
+  toggleBtn.textContent = extractedVisible
+    ? "Hide full extracted text"
+    : "Show full extracted text";
+});
+
+/* ===============================
+   DELETE REPORT
+================================ */
 deleteBtn.addEventListener("click", () => {
   if (!currentReportId) {
-    alert("Please select a report first");
+    alert("Select a report first");
     return;
   }
 
-  const confirmDelete = confirm(
-    "Are you sure you want to delete this report?\nThis action cannot be undone."
-  );
-
-  if (!confirmDelete) return;
+  if (!confirm("Delete this report permanently?")) return;
 
   fetch(`http://127.0.0.1:5000/history/${currentReportId}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      alert("Report deleted");
-
-      // 🔹 Remove from sidebar
       document.querySelector(".report-item.active")?.remove();
-
-      // 🔹 Clear main panels
-      extractedTextDiv.textContent = "Select a report to view details";
       aiSummaryDiv.textContent = "Select a report to view AI summary";
+      extractedTextDiv.style.display = "none";
       pdfSection.style.display = "none";
-
       currentReportId = null;
     } else {
       alert(data.message);
     }
-  })
-  .catch(err => {
-    console.error("Delete error:", err);
-    alert("Failed to delete report");
   });
 });
 
-    
-
+/* ===============================
+   DOWNLOAD AI SUMMARY AS PDF
+================================ */
+downloadAiBtn.addEventListener("click", () => {
+  const text = aiSummaryDiv.textContent.trim();
+  if (!text) {
+    alert("No AI summary available");
+    return;
   }
+
+  fetch("http://127.0.0.1:5000/generate-pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ result: text })
+  })
+  .then(res => res.blob())
+  .then(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "AI_Summary.pdf";
+    a.click();
+  });
+});
+
+/* ===============================
+   LOGOUT
+================================ */
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+});
 </script>
 
-
-  </body>
-  </html>
+</body>
+</html>

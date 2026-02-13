@@ -185,6 +185,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
     if (data.success) {
       // 🔐 Save token
       localStorage.setItem("token", data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       // ➡ Redirect
       window.location.href = "index.html";
     } else {

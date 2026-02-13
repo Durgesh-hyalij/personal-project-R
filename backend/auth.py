@@ -56,3 +56,15 @@ def get_current_user():
     
     # Success! Return user
     return current_user, None
+
+def get_admin_user():
+    current_user,error = get_current_user()
+    if error:
+        return error
+    
+    if not current_user.is_admin:
+        return jsonify({
+            'error': 'Admin access required'
+        }),403
+    
+    return current_user, None
