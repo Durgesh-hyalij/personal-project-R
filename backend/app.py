@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
-from models import db, init_db, Report , User
+from models import db, init_db, Report , User, SharedAccess
 # from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from flask import send_from_directory
@@ -12,11 +12,11 @@ from flask import request, send_file
 from fpdf import FPDF
 import io
 from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from functools import wraps
 from auth import hash_password, verify_password, create_token, get_current_user, get_admin_user
+import secrets
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -88,72 +88,10 @@ with app.app_context():   # with app.app_context() is required whenever you use 
         print('='*50 + '\n')
 
 
-
-
-# def token_required(f):
-#     @wraps(f)
-#     def decorated(*args, **kwargs):
-
-#         token = None
-
-#         # 1️⃣ Read Authorization header
-#         auth_header = request.headers.get("Authorization")
-
-#         if auth_header and auth_header.startswith("Bearer "):
-#             token = auth_header.split(" ")[1]
-
-#         if not token:
-#             return jsonify({
-#                 "success": False,
-#                 "message": "Token is missing"
-#             }), 401
-
-#         try:
-#             # 2️⃣ Decode token
-#             decoded = jwt.decode(
-#                 token,
-#                 app.config["SECRET_KEY"],
-#                 algorithms=["HS256"]
-#             )
-
-#             # 3️⃣ Attach user_id to request
-#             request.user_id = decoded["user_id"]
-
-#         except jwt.ExpiredSignatureError:
-#             return jsonify({
-#                 "success": False,
-#                 "message": "Token expired"
-#             }), 401
-
-#         except jwt.InvalidTokenError:
-#             return jsonify({
-#                 "success": False,
-#                 "message": "Invalid token"
-#             }), 401
-
-#         # 4️⃣ Token valid → allow request
-#         return f(*args, **kwargs)
-
-#     return decorated
-
-
 @app.route("/test")
 def test():
-    sample_pdf = os.path.join(app.config["UPLOAD_FOLDER"], "sample.pdf")
+    return "test route and all running successfullyyyyyyyyyy"
 
-    if not os.path.exists(sample_pdf):
-        return jsonify({"error": "sample.pdf not found"}), 404
-
-    text = extract_text_from_pdf(sample_pdf)
-
-    print("===== PDF TEXT PREVIEW =====")
-    print(text[:1000])   # first 1000 chars
-    print("===== END =====")
-
-    return jsonify({
-        "status": "success",
-        "preview": text[:1000]
-    })
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -203,6 +141,7 @@ def register():
         "success": True,
         "message": "User registered successfully"
     }), 201
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -312,55 +251,6 @@ def delete_report(id):
     })
 
 
-# @app.route("/history/<int:id>/pdf-name", methods=["PATCH"])
-# def edit_pdf_name(id):
-#     # 1️⃣ Fetch report
-#     report = Report.query.get(id)
-
-#     if not report:
-#         return jsonify({
-#             "success": False,
-#             "message": "Report not found"
-#         }), 404
-
-#     # 2️⃣ Read input
-#     data = request.json
-#     new_name = data.get("pdf_name")
-
-#     # 3️⃣ Validation
-#     if not new_name or not new_name.strip():
-#         return jsonify({
-#             "success": False,
-#             "message": "PDF name cannot be empty"
-#         }), 400
-
-#     # Force .pdf extension
-#     if not new_name.lower().endswith(".pdf"):
-#         new_name += ".pdf"
-
-#     # 4️⃣ Update DB
-#     report.pdf_name = new_name
-
-#     try:
-#         db.session.commit()
-#     except Exception:
-#         db.session.rollback()
-#         return jsonify({
-#             "success": False,
-#             "message": "Failed to update PDF name"
-#         }), 500
-
-#     # 5️⃣ Response
-#     return jsonify({
-#         "success": True,
-#         "message": "PDF name updated successfully",
-#         "data": {
-#             "id": report.id,
-#             "pdf_name": report.pdf_name
-#         }
-#     })
-
-    
 @app.route("/generate-pdf", methods=["POST"])
 # @token_required
 def generate_pdf():
@@ -420,6 +310,7 @@ def generate_pdf():
         as_attachment=True,
         download_name="AI_Summary.pdf"
     )
+
 
 @app.route("/history", methods=["GET"])
 # @token_required
@@ -481,6 +372,7 @@ def get_single_report(report_id):
             "pdf_name": os.path.basename(report.pdf_path)
         }
     })
+
 
 @app.route("/download/<path:filename>")
 def download_pdf(filename):     #filename comes from URL (route)
@@ -559,6 +451,84 @@ def upload_report():
         print("ERROR:", e)
         print(e)
         return jsonify({"error": "Internal server errorrrrr"}), 500   
+
+
+@app.route("/share-reports", methods=["POST"])
+def share_reports():
+    current_user, error = get_current_user()
+    if error:
+        return error
+
+    # Step 1: Delete existing share link (only one active allowed)
+    existing_share = SharedAccess.query.filter_by(user_id=current_user.id).first()
+
+    if existing_share:
+        db.session.delete(existing_share)
+        db.session.commit()
+
+    # Step 2: Generate secure token
+    token = secrets.token_urlsafe(32)
+
+    # Step 3: Set expiration
+    expires_at = datetime.utcnow() + timedelta(days=7)
+
+    # Step 4: Create new share entry
+    new_share = SharedAccess(
+        user_id=current_user.id,
+        share_token=token,
+        expires_at=expires_at
+    )
+
+    db.session.add(new_share)
+    db.session.commit()
+
+    # Step 5: Return real link
+    return jsonify({
+        "share_link": f"http://127.0.0.1:5000/doctor-view/{token}"
+    })
+
+    
+@app.route('/doctor-view/<token>', methods=['GET'])
+def doctor_view(token):
+
+    # Step 1: Find shared access record
+    shared = SharedAccess.query.filter_by(share_token=token).first()
+
+    if not shared:
+        return jsonify({"error": "Invalid or expired link"}), 404
+
+    # Step 2: Check expiration
+    if datetime.utcnow() > shared.expires_at:
+        return jsonify({"error": "Link has expired"}), 403
+
+    # Step 3: Get reports of that user only
+    reports = Report.query.filter_by(user_id=shared.user_id).all()
+    patient = shared.user
+
+    if not reports:
+        return jsonify({"error": "No reports found"}), 404
+
+    # Step 4: Serialize reports
+    reports_data = [{
+        "id": r.id,
+        "extracted_text": r.extracted_text,
+        "ai_summary": r.ai_summary,
+        "created_at": r.created_at
+    } for r in reports]
+
+    # return jsonify({
+    #     "success": True,
+    #     "reports": reports_data,
+    #     "expires_at": shared.expires_at
+    # })
+
+    return render_template(
+    "doctor_view.html",
+    patient=shared.user,
+    reports=reports_data,
+    expires_at=shared.expires_at
+)
+
 
 
 if __name__ == "__main__":

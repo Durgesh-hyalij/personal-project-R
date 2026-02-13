@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            color: white;
+        }
+
+        .report-item:hover {
+            background: #eef4ff;
+            cursor: pointer;
+        }
+
+        .report-item.active {
+            background: #dbe9ff;
+            border-left: 4px solid #0d6efd;
+            font-weight: 600;
+        }
+
+        .detail-box {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .badge-expiry {
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid p-4">
+
+    <!-- Premium Header -->
+    <div class="card shadow-sm header-card mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+
+            <div>
+                <h4 class="mb-1">🩺 Medical Report Dashboard</h4>
+                <p class="mb-0">
+                    Patient:
+                    <strong>{{ patient.name }}</strong>
+                </p>
+                <small>Total Reports: {{ reports|length }}</small>
+            </div>
+
+            <div class="text-end">
+                <span class="badge bg-light text-dark badge-expiry">
+                    Access valid until:
+                    {{ expires_at.strftime('%d %b %Y') }}
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- Left Panel: Report List -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <strong>Reports</strong>
+                </div>
+
+                <div class="list-group list-group-flush" id="reportList">
+
+                    {% for report in reports %}
+                    <div class="list-group-item report-item"
+                         onclick="showReport({{ report.id }}, this)">
+                        <div class="fw-semibold">
+                            Report #{{ loop.index }}
+                        </div>
+                        <small class="text-muted">
+                            {{ report.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                        </small>
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Details -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <strong>Report Details</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <h6 class="text-primary">Extracted Text</h6>
+                    <div id="extractedText" class="detail-box mb-4">
+                        Select a report to view details.
+                    </div>
+
+                    <h6 class="text-primary">AI Summary</h6>
+                    <div id="aiSummary" class="detail-box">
+                        Select a report to view AI explanation.
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const reports = {{ reports | tojson }};
+
+    function showReport(id, element) {
+
+        // Remove active from all
+        document.querySelectorAll(".report-item")
+            .forEach(item => item.classList.remove("active"));
+
+        // Add active to clicked
+        element.classList.add("active");
+
+        const report = reports.find(r => r.id === id);
+        if (!report) return;
+
+        document.getElementById("extractedText").innerText =
+            report.extracted_text;
+
+        document.getElementById("aiSummary").innerText =
+            report.ai_summary || "No AI summary available.";
+    }
+</script>
+
+</body>
+</html>
