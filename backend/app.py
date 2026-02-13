@@ -276,7 +276,7 @@ def delete_report(id):
     
     report = Report.query.get(id)
 
-    if report.user_id != request.user_id:
+    if report.user_id != current_user.id:
         return jsonify({"message": "Unauthorized"}), 403
 
     if not report:
@@ -364,6 +364,13 @@ def delete_report(id):
 @app.route("/generate-pdf", methods=["POST"])
 # @token_required
 def generate_pdf():
+    # Step 1: Check if user is logged in AND is admin
+    current_user, error = get_current_user()
+   
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+
+
     data = request.json
     ai_result = data.get("result", "")
 
@@ -419,12 +426,12 @@ def generate_pdf():
 def get_report_history():
     # Step 1: Check if user is logged in AND is admin   
     current_user, error = get_current_user()
-    print("current user in admin", current_user)
+    
     if error:
         return error  # Returns 401 if not logged in, 403 if not admin
     
     # reports = Report.query.order_by(Report.created_at.desc()).all()  #gets all data and in new added first format
-    reports = Report.query.filter_by(user_id=request.user_id).all()
+    reports = Report.query.filter_by(user_id=current_user.id).all()
     print("hello durgesh")
     print("AUTH HEADER:", request.headers.get("Authorization"))
 
@@ -448,10 +455,16 @@ def get_report_history():
 @app.route("/history/<int:report_id>", methods=["GET"])
 # @token_required
 def get_single_report(report_id):
+     # Step 1: Check if user is logged in AND is admin
+    current_user, error = get_current_user()
+   
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+    
     # report = Report.query.get(report_id)
     report = db.session.get(Report, report_id)
 
-    if report.user_id != request.user_id:
+    if report.user_id != current_user.id:
         return jsonify({"message": "Unauthorized"}), 403
 
     if not report:
@@ -473,6 +486,7 @@ def get_single_report(report_id):
 def download_pdf(filename):     #filename comes from URL (route)
     # print("UPLOAD FOLDER:", app.config["UPLOAD_FOLDER"])  #testing
     # print("FILENAME:", filename)
+    
     return send_from_directory(
         app.config["UPLOAD_FOLDER"],
         filename,
@@ -483,8 +497,14 @@ def download_pdf(filename):     #filename comes from URL (route)
 @app.route("/upload-report", methods=["POST"])
 # @token_required
 def upload_report():
-    print("AUTH HEADER:", request.headers.get("Authorization"))
-
+     # Step 1: Check if user is logged in AND is admin
+    current_user, error = get_current_user()
+    print("/upload-repotr route", current_user.id)
+    print("/upload-repotr route", error)
+   
+    if error:
+        return error  # Returns 401 if not logged in, 403 if not admin
+    
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
@@ -494,6 +514,7 @@ def upload_report():
             return jsonify({"error": "Only PDF allowed"}), 400
 
         path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        print(path)
         file.save(path)
 
         extracted_text = extract_text_from_pdf(path)
@@ -524,7 +545,7 @@ def upload_report():
             extracted_text=extracted_text,
             pdf_path=path,
             ai_summary=ai_output,
-            user_id=request.user_id
+            user_id=current_user.id
         )
         db.session.add(new_report)
         db.session.commit()
@@ -536,7 +557,8 @@ def upload_report():
 
     except Exception as e:          # Catches any server-side crashes, logs the error, and alerts the frontend
         print("ERROR:", e)
-        return jsonify({"error": "Internal server error"}), 500   
+        print(e)
+        return jsonify({"error": "Internal server errorrrrr"}), 500   
 
 
 if __name__ == "__main__":
