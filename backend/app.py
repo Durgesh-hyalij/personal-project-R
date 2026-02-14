@@ -17,6 +17,7 @@ import jwt
 from functools import wraps
 from auth import hash_password, verify_password, create_token, get_current_user, get_admin_user
 import secrets
+import re
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -312,6 +313,7 @@ def generate_pdf():
     )
 
 
+
 @app.route("/history", methods=["GET"])
 # @token_required
 def get_report_history():
@@ -518,6 +520,7 @@ def doctor_view(token):
 
     # return jsonify({
     #     "success": True,
+    #     "patient" : shared.user,
     #     "reports": reports_data,
     #     "expires_at": shared.expires_at
     # })

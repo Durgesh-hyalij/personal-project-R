@@ -31,4 +31,3 @@ def build_medical_prompt(extracted_text):
         "\"This explanation is for educational purposes only and is not a medical "
         "diagnosis. Please consult a qualified healthcare professional for medical advice.\""
     )
-    
