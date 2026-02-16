@@ -158,7 +158,7 @@ document.getElementById("registerBtn").addEventListener("click", () => {
 
   <p id="msg"></p>
 
-  <a href="login.html" class="login-link">Already have an account? <strong>Login</strong></a>
+  <a href="/login-page" class="login-link">Already have an account? <strong>Login</strong></a>
 </div>
 
 <script>
@@ -184,7 +184,7 @@ document.getElementById("registerBtn").addEventListener("click", () => {
   .then(data => {
     if (data.success) {
       alert("Registration successful!");
-      window.location.href = "login.html";
+      window.location.href = "/login-page";
     } else {
       document.getElementById("msg").innerText = data.message;
     }

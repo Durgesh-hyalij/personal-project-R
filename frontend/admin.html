@@ -133,7 +133,7 @@
     // 🚨 If not admin → block access
     if (!decoded.is_admin) {
         alert("Access denied. Admins only.");
-        window.location.href = "login.html";
+        window.location.href = "/login-page";
     }
 
     // 📡 Fetch all users from backend
@@ -148,7 +148,7 @@
 
             if (response.status === 401) {
                 localStorage.clear();
-                window.location.href = "login.html";
+                window.location.href = "/login-page";
                 return;
             }
 
@@ -186,7 +186,7 @@
 
     function logout() {
         localStorage.clear();
-        window.location.href = "login.html";
+        window.location.href = "/login-page";
     }
 
     // 🚀 Load users when page opens

@@ -264,14 +264,14 @@ body {
 
 <script>
   if (!localStorage.getItem("token")) {
-    window.location.href = "login.html";
+    window.location.href = "/login-page";
   }
 </script>
 
 <div class="topbar">
   <h3>🩺 Project-R</h3>
   <div class="right">
-    <a href="index.html">Home</a>
+    <a href="/dashboard">Home</a>
     <button id="downloadAiPdf">Download AI PDF</button>
     <button id="shareBtn">Share With Doctor</button>
     <button id="logoutBtn">Logout</button>
@@ -364,7 +364,7 @@ fetch("http://127.0.0.1:5000/history", {
 .then(res => {
   if (res.status === 401) {
     localStorage.removeItem("token");
-    window.location.href = "login.html";
+    window.location.href = "/login-page";
     return null;
   }
   return res.json();
@@ -448,7 +448,7 @@ downloadAiBtn.addEventListener("click", () => {
 
 logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("token");
-  window.location.href = "login.html";
+  window.location.href = "/login-page";
 });
 </script>
 

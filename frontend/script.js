@@ -7,15 +7,15 @@
     // AUTH CHECK
     // ==============================
     if (!token || !user) {
-        window.location.href = 'login.html';
+        window.location.href = '/login-page';
     }
 
     // Show admin link if admin
     if (user.is_admin) {
         document.getElementById('nav-links').innerHTML = `
             <span class="navbar-text">Hello, ${user.username}</span>
-            <a class="nav-link" href="admin.html">Admin</a>
-            <a class="nav-link" href="login.html" onclick="logout()">Logout</a>
+            <a class="nav-link" href="/admin-page">Admin</a>
+            <a class="nav-link" href="/login-page" onclick="logout()">Logout</a>
         `;
     console.log(`your code is inside the user.is_admin`)
 
@@ -106,7 +106,7 @@ async function uploadPDF() {
 // }
 function logout() {
         localStorage.clear();
-        window.location.href = 'login.html';
+        window.location.href = '/login-page';
     }
 
  function escapeHtml(text) {

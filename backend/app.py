@@ -1,14 +1,12 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 import os
 import cohere
 from dotenv import load_dotenv  # Load .env file
 from models import db, init_db, Report , User, SharedAccess
-# from flask_sqlalchemy import SQLAlchemy
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from flask import send_from_directory
-from flask import request, send_file
 from fpdf import FPDF
 import io
 from datetime import datetime, timedelta
@@ -26,12 +24,11 @@ if USE_AI:  # Optional: load env only if AI is enabled
     load_dotenv()
 
 COHERE_API_KEY = os.getenv('API_URL')
-# UPLOAD_FOLDER = "Backend/uploads"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-logo_path = os.path.join(BASE_DIR, "..", "static", "logo.png")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # SEE README.md file
+logo_path = os.path.join(BASE_DIR, "static", "logo.png")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
-# os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Defines the upload path and creates the directory if it doesn't already exist
 
+FRONTEND_PATH = os.path.join(BASE_DIR, "..", "frontend")
 
 # Create client ONLY if AI is enabled # COHERE_API_KEY = "COHERE_API_KEY"
 co = None
@@ -39,10 +36,13 @@ if USE_AI and COHERE_API_KEY:
     co = cohere.Client(COHERE_API_KEY)
 
 app = Flask(__name__)
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
 CORS(app)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///api_demo.db'
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER     
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -88,6 +88,42 @@ with app.app_context():   # with app.app_context() is required whenever you use 
         print('Password: admin123')
         print('='*50 + '\n')
 
+# --- HTML PAGE ROUTES ---
+
+@app.route('/')
+def home():
+    return send_from_directory(FRONTEND_PATH, 'welcome.html')
+
+@app.route('/dashboard') # Changed from /index to be more descriptive
+def index():
+    return send_from_directory(FRONTEND_PATH, 'index.html')
+
+@app.route('/login-page') # Added '-page' to avoid conflict with /login API
+def login_page():
+    return send_from_directory(FRONTEND_PATH, 'login.html')
+
+@app.route('/register-page')
+def register_page():
+    return send_from_directory(FRONTEND_PATH, 'register.html')
+
+@app.route('/admin-page')
+def admin_page():
+    return send_from_directory(FRONTEND_PATH, 'admin.html')
+
+@app.route('/history-page') # IMPORTANT: Different name than the API /history
+def history_page():
+    return send_from_directory(FRONTEND_PATH, 'history.html')
+
+# --- STATIC FILES ROUTE (The 404 Fix) ---
+# This MUST be below the other routes
+@app.route('/<path:filename>')
+def serve_frontend_files(filename):
+    return send_from_directory(FRONTEND_PATH, filename)
+
+
+@app.route('/doctor_vieww')
+def doctor_vieww():
+    return send_from_directory(FRONTEND_PATH, 'doctor_view.html')
 
 @app.route("/test")
 def test():
@@ -484,55 +520,54 @@ def share_reports():
     db.session.add(new_share)
     db.session.commit()
 
-    # Step 5: Return real link
+    # # Step 5: Return real link
+    # return jsonify({
+    #     "share_link": f"http://127.0.0.1:5000/doctor-view/{token}"
+    # })
+    # Step 5: Return the UI link (not the API link)
     return jsonify({
-        "share_link": f"http://127.0.0.1:5000/doctor-view/{token}"
+        "success": True,
+        "share_link": f"http://127.0.0.1:5000/doctor-report/{token}"
     })
 
-    
+
+@app.route('/doctor-report/<token>')
+def view_report_page(token):
+    return send_from_directory(FRONTEND_PATH, 'doctor_view.html')
+
 @app.route('/doctor-view/<token>', methods=['GET'])
 def doctor_view(token):
-
-    # Step 1: Find shared access record
     shared = SharedAccess.query.filter_by(share_token=token).first()
 
     if not shared:
-        return jsonify({"error": "Invalid or expired link"}), 404
+        return jsonify({"success": False, "error": "Invalid or expired link"}), 404
 
-    # Step 2: Check expiration
     if datetime.utcnow() > shared.expires_at:
-        return jsonify({"error": "Link has expired"}), 403
+        return jsonify({"success": False, "error": "Link has expired"}), 403
 
-    # Step 3: Get reports of that user only
     reports = Report.query.filter_by(user_id=shared.user_id).all()
-    patient = shared.user
+    patient = shared.user 
 
-    if not reports:
-        return jsonify({"error": "No reports found"}), 404
+    # Serialize Patient
+    patient_data = {
+        "username": patient.name,
+        "email": patient.email
+    }
 
-    # Step 4: Serialize reports
+    # Serialize Reports
     reports_data = [{
         "id": r.id,
-        "extracted_text": r.extracted_text,
         "ai_summary": r.ai_summary,
-        "created_at": r.created_at
+        "extracted_text": r.extracted_text,
+        "created_at": r.created_at.strftime("%Y-%m-%d %H:%M") 
     } for r in reports]
 
-    # return jsonify({
-    #     "success": True,
-    #     "patient" : shared.user,
-    #     "reports": reports_data,
-    #     "expires_at": shared.expires_at
-    # })
-
-    return render_template(
-    "doctor_view.html",
-    patient=shared.user,
-    reports=reports_data,
-    expires_at=shared.expires_at
-)
-
-
+    return jsonify({
+        "success": True,
+        "patient": patient_data,
+        "reports": reports_data,
+        "expires_at": shared.expires_at.strftime("%Y-%m-%d %H:%M")
+    })
 
 if __name__ == "__main__":
     # init_db(app)
