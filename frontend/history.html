@@ -332,7 +332,7 @@ const token = localStorage.getItem("token");
 
 shareBtn.addEventListener("click", async () => {
     try {
-        const response = await fetch("http://127.0.0.1:5000/share-reports", {
+        const response = await fetch("/share-reports", {
             method: "POST",
             headers: { "Authorization": "Bearer " + token }
         });
@@ -358,7 +358,7 @@ function copyLink(link) {
     alert("Link copied to clipboard");
 }
 
-fetch("http://127.0.0.1:5000/history", {
+fetch("/history", {
   headers: { "Authorization": "Bearer " + token }
 })
 .then(res => {
@@ -385,7 +385,7 @@ function loadReport(id, element) {
   element.classList.add("active");
   currentReportId = id;
 
-  fetch(`http://127.0.0.1:5000/history/${id}`, {
+  fetch(`/history/${id}`, {
     headers: { "Authorization": "Bearer " + token }
   })
   .then(res => res.json())
@@ -414,7 +414,7 @@ toggleBtn.addEventListener("click", () => {
 deleteBtn.addEventListener("click", () => {
   if (!currentReportId) return alert("Select a report first");
   if (!confirm("Delete this report permanently?")) return;
-  fetch(`http://127.0.0.1:5000/history/${currentReportId}`, {
+  fetch(`/history/${currentReportId}`, {
     method: "DELETE",
     headers: { "Authorization": "Bearer " + token }
   })
@@ -432,7 +432,7 @@ deleteBtn.addEventListener("click", () => {
 downloadAiBtn.addEventListener("click", () => {
   const text = aiSummaryDiv.textContent.trim();
   if (!text) return alert("No AI summary available");
-  fetch("http://127.0.0.1:5000/generate-pdf", {
+  fetch("/generate-pdf", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
     body: JSON.stringify({ result: text })

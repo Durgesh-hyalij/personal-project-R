@@ -39,7 +39,7 @@
 
             try {
                 // We fetch from the /doctor-view API route
-                const response = await fetch(`http://127.0.0.1:5000/doctor-view/${token}`);
+                const response = await fetch(`/doctor-view/${token}`);
                 const data = await response.json();
 
                 if (data.success) {

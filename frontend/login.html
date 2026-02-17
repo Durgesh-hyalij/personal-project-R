@@ -173,7 +173,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
   // Clear previous message
   document.getElementById("msg").innerText = "";
 
-  fetch("http://127.0.0.1:5000/login", {
+  fetch("/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

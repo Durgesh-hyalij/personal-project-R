@@ -61,7 +61,7 @@ async function uploadPDF() {
     }, 300);
 
     try {           // Sends the file to the server
-        const response = await fetch("http://127.0.0.1:5000/upload-report", {
+        const response = await fetch("/upload-report", {
             method: "POST",
             headers: {
             "Authorization": "Bearer " + localStorage.getItem("token")
