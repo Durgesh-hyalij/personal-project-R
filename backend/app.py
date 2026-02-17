@@ -114,11 +114,6 @@ def admin_page():
 def history_page():
     return send_from_directory(FRONTEND_PATH, 'history.html')
 
-# --- STATIC FILES ROUTE (The 404 Fix) ---
-# This MUST be below the other routes
-@app.route('/<path:filename>')
-def serve_frontend_files(filename):
-    return send_from_directory(FRONTEND_PATH, filename)
 
 
 @app.route('/doctor_vieww')
@@ -568,6 +563,12 @@ def doctor_view(token):
         "reports": reports_data,
         "expires_at": shared.expires_at.strftime("%Y-%m-%d %H:%M")
     })
+
+# --- STATIC FILES ROUTE (The 404 Fix) ---
+# This MUST be below the other routes
+@app.route('/<path:filename>')
+def serve_frontend_files(filename):
+    return send_from_directory(FRONTEND_PATH, filename)
 
 if __name__ == "__main__":
     # init_db(app)
