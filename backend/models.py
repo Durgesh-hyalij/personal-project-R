@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timezone
 
 db = SQLAlchemy()
 
@@ -18,6 +18,7 @@ class Report(db.Model):
     extracted_text = db.Column(db.Text, nullable=False)
     pdf_path = db.Column(db.String(1000), nullable=False)
     ai_summary = db.Column(db.Text, nullable=True)
+    analysis_data = db.Column(db.JSON, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
@@ -25,8 +26,8 @@ class SharedAccess(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     share_token = db.Column(db.String(255), unique=True, nullable=False)
-    expires_at = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     user = db.relationship("User", backref="shared_links", lazy=True)
     
 def init_db(app):

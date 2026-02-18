@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, send_from_directory
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 import os
@@ -6,16 +6,16 @@ import cohere
 from dotenv import load_dotenv  # Load .env file
 from models import db, init_db, Report , User, SharedAccess
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
-from flask import send_from_directory
-from fpdf import FPDF
+from fpdf import FPDF #for download ai pdf
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from functools import wraps
 from auth import hash_password, verify_password, create_token, get_current_user, get_admin_user
 import secrets
 import re
+from seed import create_default_admin
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -64,32 +64,10 @@ class PDF(FPDF):
         self.cell(0, 10, "© Project-R | AI Generated", align="C")
 
 with app.app_context():   # with app.app_context() is required whenever you use Flask features outside a request, so Flask knows which app is active. eg - models , extentions , etc
-    # db.create_all()
+    create_default_admin()
 
-    admin = User.query.filter_by(email='admin@example.com').first()
-    if not admin:
-        admin = User(
-            name='admin',
-            email='admin@example.com',
-            password_hash=hash_password('admin123'),
-            is_admin=True  # This makes user an admin
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print('\n' + '='*50)
-        print('DEFAULT ADMIN USER CREATED:')
-        print('Email:    admin@example.com')
-        print('Password: admin123')
-        print('='*50 + '\n')
-    else:
-        print('\n' + '='*50)
-        print('ADMIN LOGIN:')
-        print('Email:    admin@example.com')
-        print('Password: admin123')
-        print('='*50 + '\n')
 
 # --- HTML PAGE ROUTES ---
-
 @app.route('/')
 def home():
     return send_from_directory(FRONTEND_PATH, 'welcome.html')
@@ -465,12 +443,21 @@ def upload_report():
                 "Extracted PDF text preview:\n\n"
                 + extracted_text[:1500]
             )
+
+        analysis_data = {
+            "risk_level": "Low",
+            "ai_model": "c4ai-aya-expanse-32b",
+            "word_count": len(extracted_text.split()),
+            "generated_at": datetime.utcnow().isoformat()
+        }
+
         # 1. Create the entry for database
         new_report = Report(
             extracted_text=extracted_text,
             pdf_path=path,
             ai_summary=ai_output,
-            user_id=current_user.id
+            user_id=current_user.id,
+            analysis_data=analysis_data
         )
         db.session.add(new_report)
         db.session.commit()
@@ -503,7 +490,7 @@ def share_reports():
     token = secrets.token_urlsafe(32)
 
     # Step 3: Set expiration
-    expires_at = datetime.utcnow() + timedelta(days=7)
+    expires_at = datetime.now(UTC) + timedelta(days=7)
 
     # Step 4: Create new share entry
     new_share = SharedAccess(
@@ -537,7 +524,7 @@ def doctor_view(token):
     if not shared:
         return jsonify({"success": False, "error": "Invalid or expired link"}), 404
 
-    if datetime.utcnow() > shared.expires_at:
+    if datetime.now(UTC) > shared.expires_at:
         return jsonify({"success": False, "error": "Link has expired"}), 403
 
     reports = Report.query.filter_by(user_id=shared.user_id).all()
