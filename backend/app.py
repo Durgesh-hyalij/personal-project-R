@@ -280,10 +280,11 @@ def generate_pdf():
     pdf.add_page()
 
     # LOGO
-    logo_path = os.path.join("static", "logo.png")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(BASE_DIR, "static", "logo.png")
+
     pdf.image(logo_path, x=10, y=8, w=25)
-    # pdf.image("backend/static/logo.png", x=10, y=8, w=25)
-    # pdf.image(logo_path, x=10, y=8, w=25)
+   
 
     # TITLE
     pdf.set_font("Arial", "B", 16)
