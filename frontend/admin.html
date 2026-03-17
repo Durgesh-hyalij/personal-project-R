@@ -1,196 +1,373 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Panel | Project-R</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Admin Panel | Project-R</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background: #f4f6f9;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .navbar {
-            background: #1e293b;
-            color: white;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-        }
+<style>
 
-        .navbar button {
-            background: #ef4444;
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f9;
+}
 
-        .container {
-            padding: 30px;
-        }
+.navbar{
+background:#1e293b;
+color:white;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+}
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+.navbar button{
+background:#ef4444;
+border:none;
+color:white;
+padding:6px 12px;
+cursor:pointer;
+border-radius:4px;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+.container{
+padding:30px;
+}
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
+.card{
+background:white;
+padding:20px;
+border-radius:8px;
+margin-bottom:20px;
+box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
 
-        th {
-            background: #e2e8f0;
-        }
+table{
+width:100%;
+border-collapse:collapse;
+}
 
-        .badge {
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-        }
+th,td{
+padding:12px;
+border-bottom:1px solid #ddd;
+text-align:left;
+}
 
-        .admin {
-            background: #16a34a;
-            color: white;
-        }
+th{
+background:#e2e8f0;
+}
 
-        .user {
-            background: #3b82f6;
-            color: white;
-        }
+.badge{
+padding:4px 8px;
+border-radius:5px;
+font-size:12px;
+}
 
-        .error {
-            color: red;
-        }
-    </style>
+.admin{
+background:#16a34a;
+color:white;
+}
+
+.user{
+background:#3b82f6;
+color:white;
+}
+
+.pending{
+background:#f59e0b;
+color:white;
+}
+
+button.approve{
+background:#16a34a;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:4px;
+cursor:pointer;
+}
+
+button.reject{
+background:#dc2626;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.error{
+color:red;
+}
+
+</style>
+
 </head>
+
 <body>
 
 <div class="navbar">
-    <div><strong>Admin Dashboard</strong></div>
-    <div>
-        <button onclick="logout()">Logout</button>
-    </div>
+
+<div><strong>Admin Dashboard</strong></div>
+
+<div>
+<button onclick="logout()">Logout</button>
+</div>
+
 </div>
 
 <div class="container">
-    <div class="card">
-        <h3>All Registered Users</h3>
-        <p id="error-msg" class="error"></p>
 
-        <table id="users-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="4">Loading...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+<!-- USERS -->
+
+<div class="card">
+
+<h3>All Registered Users</h3>
+
+<p id="error-msg" class="error"></p>
+
+<table id="users-table">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Role</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+<td colspan="4">Loading...</td>
+</tr>
+
+</tbody>
+
+</table>
+
 </div>
 
+
+<!-- LAB APPLICATIONS -->
+
+<div class="card">
+
+<h3>Lab Applications</h3>
+
+<table id="labs-table">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Lab Name</th>
+<th>Owner</th>
+<th>Email</th>
+<th>City</th>
+<th>License</th>
+<th>Document</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+<td colspan="9">Loading...</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
 <script>
-    // 🔐 Get token from localStorage
-    const token = localStorage.getItem("token");
-    console.log("inside token" + token)
-    const user  = JSON.parse(localStorage.getItem('user') || 'null');
+
+   const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "/login-page";
+}
 
 
-    // 🚨 If no token → redirect to login
-    if (!token) {
-        window.location.href = "login.html";
+// ================= JWT CHECK =================
+
+function parseJwt(token) {
+    const base64Payload = token.split('.')[1];
+    const payload = atob(base64Payload);
+    return JSON.parse(payload);
+}
+
+const decoded = parseJwt(token);
+
+if (!decoded.is_admin) {
+    alert("Admins only");
+    window.location.href = "/login-page";
+}
+
+
+// ================= USERS =================
+
+async function loadUsers() {
+    try {
+        const res = await fetch("/api/admin/users", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+
+        const table = document.querySelector("#users-table tbody");
+        table.innerHTML = "";
+
+        data.users.forEach(user => {
+            table.innerHTML += `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span class="badge ${user.is_admin ? 'admin' : 'user'}">
+                            ${user.is_admin ? 'Admin' : 'User'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+    } catch (err) {
+        console.error("User Load Error:", err);
     }
+}
 
-    // 🔎 Decode token to check if admin
-    function parseJwt(token) {
-        const base64Payload = token.split('.')[1];
-        const payload = atob(base64Payload);
-        return JSON.parse(payload);
-    }
 
-    const decoded = parseJwt(token);
+// ================= LAB APPLICATIONS =================
 
-    // 🚨 If not admin → block access
-    if (!decoded.is_admin) {
-        alert("Access denied. Admins only.");
-        window.location.href = "/login-page";
-    }
+async function loadLabApplications() {
 
-    // 📡 Fetch all users from backend
-    async function loadUsers() {
-        try {
-            const response = await fetch("/api/admin/users", {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+    try {
+        const res = await fetch("/admin/lab-applications", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
 
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = "/login-page";
-                return;
+        const labs = await res.json();
+
+        console.log("LAB DATA:", labs); // DEBUG
+
+        const table = document.querySelector("#labs-table tbody");
+        table.innerHTML = "";
+
+        if (!labs.length) {
+            table.innerHTML = `<tr><td colspan="9">No Applications Found</td></tr>`;
+            return;
+        }
+
+        labs.forEach(lab => {
+
+            let documentLink = "No File";
+
+            if (lab.document) {
+                documentLink = `<a href="/uploads/${lab.document}" target="_blank">View</a>`;
             }
 
-            if (response.status === 403) {
-                document.getElementById("error-msg").innerText =
-                    "You are not authorized to view this page.";
-                return;
-            }
+            table.innerHTML += `
+                <tr>
+                    <td>${lab.id}</td>
+                    <td>${lab.lab_name}</td>
+                    <td>${lab.owner_name}</td>
+                    <td>${lab.email}</td>
+                    <td>${lab.city}</td>
+                    <td>${lab.license_number}</td>
+                    <td>${documentLink}</td>
+                    <td>
+                        <span class="badge pending">Pending</span>
+                    </td>
+                    <td>
+                        <button class="approve" onclick="approveLab(${lab.id})">
+                            Approve
+                        </button>
+                        <button class="reject" onclick="rejectLab(${lab.id})">
+                            Reject
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
 
-            const data = await response.json();
-
-            const tableBody = document.querySelector("#users-table tbody");
-            tableBody.innerHTML = "";
-
-            data.users.forEach(user => {
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${user.id}</td>
-                        <td>${user.name}</td>
-                        <td>${user.email}</td>
-                        <td>
-                            <span class="badge ${user.is_admin ? 'admin' : 'user'}">
-                                ${user.is_admin ? 'Admin' : 'User'}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            });
-
-        } catch (error) {
-            document.getElementById("error-msg").innerText =
-                "Failed to load users. Server error.";
-        }   
+    } catch (err) {
+        console.error("Lab Load Error:", err);
     }
+}
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = "/login-page";
-    }
 
-    // 🚀 Load users when page opens
-    loadUsers();
+// ================= APPROVE =================
+
+async function approveLab(id) {
+
+    if (!confirm("Approve this lab?")) return;
+
+    const res = await fetch(`/admin/approve-lab/${id}`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    loadLabApplications();
+}
+
+
+// ================= REJECT =================
+
+async function rejectLab(id) {
+
+    if (!confirm("Reject this lab?")) return;
+
+    const res = await fetch(`/admin/reject-lab/${id}`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    loadLabApplications();
+}
+
+
+// ================= LOGOUT =================
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "/login-page";
+}
+
+
+// ================= INIT =================
+
+loadUsers();
+loadLabApplications();
 </script>
 
 </body>

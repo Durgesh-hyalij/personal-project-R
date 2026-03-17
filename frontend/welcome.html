@@ -1,78 +1,489 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Welcome | MedReport AI</title>
+<meta charset="UTF-8">
+<title>MedReport AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+<style>
 
-        .box {
-            background: white;
-            padding: 35px;
-            border-radius: 10px;
-            text-align: center;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
+body{
+background:#f6f9fc;
+}
 
-        p {
-            color: #555;
-            line-height: 1.6;
-            font-size: 15px;
-        }
+/* NAVBAR */
 
-        button {
-            margin-top: 20px;
-            padding: 12px 22px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            background: #007bff;
-            color: white;
-            cursor: pointer;
-        }
+.navbar{
+background:white;
+padding:15px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
 
-        button:hover {
-            background: #0056b3;
-        }
-    </style>
+.logo{
+font-size:20px;
+font-weight:bold;
+color:#007bff;
+}
+
+.nav-buttons button{
+margin-left:10px;
+padding:8px 16px;
+border-radius:6px;
+border:none;
+cursor:pointer;
+}
+
+.login-btn{
+background:white;
+border:1px solid #007bff;
+color:#007bff;
+}
+
+.register-btn{
+background:#007bff;
+color:white;
+}
+
+/* HERO */
+
+.hero{
+height:70vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+color:white;
+padding:20px;
+}
+
+.hero h1{
+font-size:40px;
+margin-bottom:15px;
+}
+
+.hero p{
+max-width:600px;
+margin-bottom:20px;
+}
+
+.hero button{
+padding:12px 22px;
+border:none;
+border-radius:6px;
+background:white;
+color:#007bff;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* FEATURES */
+
+.features{
+padding:60px 40px;
+text-align:center;
+}
+
+.features h2{
+margin-bottom:40px;
+}
+
+.feature-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+}
+
+.feature-card{
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+transition:0.3s;
+}
+
+.feature-card:hover{
+transform:translateY(-5px);
+}
+
+/* LAB SECTION */
+
+.labs-section{
+padding:50px 40px;
+background:#f1f5f9;
+}
+
+.search-box{
+text-align:center;
+margin-bottom:30px;
+}
+
+.search-box input{
+padding:10px;
+border-radius:5px;
+border:1px solid #ccc;
+width:200px;
+}
+
+.search-box button{
+padding:10px 15px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+.labs-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+gap:20px;
+}
+
+.lab-card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+transition:0.3s;
+}
+
+.lab-card:hover{
+transform:scale(1.03);
+}
+
+.lab-card button{
+margin-top:10px;
+padding:8px 12px;
+background:#007bff;
+border:none;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+/* MODAL */
+
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+}
+
+.modal-box{
+background:white;
+padding:25px;
+border-radius:8px;
+width:400px;
+}
+
+.close{
+float:right;
+cursor:pointer;
+font-size:20px;
+}
+
+footer{
+text-align:center;
+padding:20px;
+background:white;
+margin-top:30px;
+}
+
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
+
 <body>
 
-<div class="box">
-    <h1>Welcome to MedReport AI</h1>
+<!-- NAVBAR -->
 
-    <p>
-        MedReport AI helps you understand your medical test reports
-        in simple and clear language. Just upload your PDF report
-        and get an easy explanation powered by AI.
-    </p>
+<div class="navbar">
 
-     <button onclick="goToApp()">Go to Application</button> 
- 
+<div class="logo">🩺 MedReport AI</div>
+
+<div class="nav-buttons">
+<button class="login-btn" onclick="goLogin()">Login</button>
+<button class="register-btn" onclick="goRegister()">Register</button>
+<button onclick="goLabApply()">Register Your Lab</button>
 </div>
 
- <script>
-    function goToApp() {
-        window.location.href = "/login-page"; 
-    }
-</script> 
+</div>
 
+
+<!-- HERO -->
+
+<section class="hero">
+
+<h1>AI Medical Report Analyzer</h1>
+
+<p>
+Upload your medical test reports and get clear explanations powered by AI.
+Also discover verified diagnostic labs near you.
+</p>
+
+<button onclick="goLogin()">Get Started</button>
+
+</section>
+
+
+<!-- FEATURES -->
+
+<section class="features">
+
+<h2>Why Use MedReport AI?</h2>
+
+<div class="feature-grid">
+
+<div class="feature-card">
+<h3>🧠 AI Explanation</h3>
+<p>Understand complex medical reports in simple language.</p>
+</div>
+
+<div class="feature-card">
+<h3>📄 Upload Reports</h3>
+<p>Upload your medical PDF reports easily.</p>
+</div>
+
+<div class="feature-card">
+<h3>🏥 Lab Marketplace</h3>
+<p>Discover trusted labs near your location.</p>
+</div>
+
+<div class="feature-card">
+<h3>🔗 Share with Doctors</h3>
+<p>Generate secure links to share reports with doctors.</p>
+</div>
+
+</div>
+
+</section>
+
+<h2 style="text-align:center;margin-top:40px;">Labs on Map</h2>
+
+<div id="map" style="height:500px; margin:30px;"></div>
+<!-- LABS -->
+
+<section class="labs-section">
+
+<h2 style="text-align:center;margin-bottom:20px;">Find Diagnostic Labs</h2>
+
+<div class="search-box">
+
+<input id="cityInput" placeholder="Search labs by city">
+
+<button onclick="searchLabs()">Search</button>
+
+<button onclick="loadLabs()">Show All</button>
+
+</div>
+
+<div class="labs-grid" id="labsContainer">
+
+Loading labs...
+
+</div>
+
+</section>
+
+
+<!-- LAB MODAL -->
+
+<div class="modal" id="labModal">
+
+<div class="modal-box">
+
+<span class="close" onclick="closeModal()">×</span>
+
+<div id="labDetails"></div>
+
+</div>
+
+</div>
+
+
+<footer>
+
+© 2026 MedReport AI | Project-R
+
+</footer>
+
+
+<script>
+
+function goLogin(){
+window.location.href="/login-page"
+}
+
+function goRegister(){
+window.location.href="/register-page"
+}
+
+async function loadLabs(){
+
+const container=document.getElementById("labsContainer")
+
+container.innerHTML="Loading..."
+
+const res=await fetch("/labs")
+
+const labs=await res.json()
+
+showLabs(labs)
+
+}
+
+function showLabs(labs){
+
+const container=document.getElementById("labsContainer")
+
+container.innerHTML=""
+
+if(!labs.length){
+container.innerHTML="No labs found"
+return
+}
+
+labs.forEach(lab=>{
+
+const card=document.createElement("div")
+
+card.className="lab-card"
+
+card.innerHTML=`
+
+<h3>${lab.lab_name}</h3>
+
+<p>📍 ${lab.city}</p>
+
+<p>🧪 ${lab.services || "Various Tests"}</p>
+
+<button onclick="viewLab(${lab.id})">View Details</button>
+
+`
+
+container.appendChild(card)
+
+})
+
+}
+
+async function searchLabs(){
+
+const city=document.getElementById("cityInput").value
+
+if(!city){
+alert("Enter city")
+return
+}
+
+const res=await fetch(`/labs/search?city=${city}`)
+
+const labs=await res.json()
+
+showLabs(labs)
+
+}
+
+async function viewLab(id){
+
+const res=await fetch(`/labs/${id}`)
+
+const lab=await res.json()
+
+const details=document.getElementById("labDetails")
+
+details.innerHTML=`
+
+<h3>${lab.lab_name}</h3>
+
+<p><b>Owner:</b> ${lab.owner_name}</p>
+
+<p><b>City:</b> ${lab.city}</p>
+
+<p><b>Address:</b> ${lab.address}</p>
+
+<p><b>Phone:</b> ${lab.phone}</p>
+
+<p><b>Services:</b> ${lab.services}</p>
+
+<p><b>Working Hours:</b> ${lab.working_hours}</p>
+
+`
+
+document.getElementById("labModal").style.display="flex"
+
+}
+
+function closeModal(){
+document.getElementById("labModal").style.display="none"
+}
+
+loadLabs()
+
+
+// Initialize map
+const map = L.map('map').setView([18.5204, 73.8567], 12); // Pune default
+
+// Add map tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+
+
+// Load labs and add markers
+async function loadMapLabs(){
+
+const res = await fetch("/labs")
+
+const labs = await res.json()
+
+labs.forEach(lab => {
+
+if(lab.latitude && lab.longitude){
+
+const marker = L.marker([lab.latitude, lab.longitude]).addTo(map)
+
+marker.bindPopup(`
+<b>${lab.lab_name}</b><br>
+📍 ${lab.city}<br>
+<button onclick="viewLab(${lab.id})">View Details</button>
+`)
+
+}
+
+})
+
+}
+
+loadMapLabs()
+
+function goLabApply(){
+    window.location.href="/lab-apply-page"
+}
+
+
+</script>
 
 </body>
 </html>

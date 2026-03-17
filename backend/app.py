@@ -2,9 +2,10 @@ from flask import Flask, request, jsonify, render_template, send_file, send_from
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 import os
+import uuid
 import cohere
 from dotenv import load_dotenv  # Load .env file
-from models import db, init_db, Report , User, SharedAccess
+from models import db, init_db, Report, User, SharedAccess, LabApplication, Lab
 from prompts.medical_prompt import build_medical_prompt  # from folder prompts file medical prompt
 from fpdf import FPDF #for download ai pdf
 import io
@@ -16,6 +17,8 @@ from auth import hash_password, verify_password, create_token, get_current_user,
 import secrets
 import re
 from seed import create_default_admin
+from werkzeug.utils import secure_filename
+from flask_migrate import Migrate
 
 USE_AI = True   # 🔴 Turn OFF AI for development
 
@@ -47,6 +50,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 init_db(app)
+migrate = Migrate(app, db)
 
 def extract_text_from_pdf(pdf_path):  # Iterates through all PDF pages to extract and combine their text into a single string
     reader = PdfReader(pdf_path)
@@ -92,8 +96,6 @@ def admin_page():
 def history_page():
     return send_from_directory(FRONTEND_PATH, 'history.html')
 
-
-
 @app.route('/doctor_vieww')
 def doctor_vieww():
     return send_from_directory(FRONTEND_PATH, 'doctor_view.html')
@@ -102,6 +104,13 @@ def doctor_vieww():
 def test():
     return "test route and all running successfullyyyyyyyyyy"
 
+@app.route('/lab-apply-page')
+def lab_apply_page():
+    return send_from_directory(FRONTEND_PATH, 'apply_lab.html')
+
+@app.route('/uploads/<path:filename>')
+def get_uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -193,6 +202,370 @@ def login():
         }
     })
 
+@app.route("/lab/apply", methods=["POST"])
+def apply_lab():
+
+    try:
+
+        lab_name = request.form.get("lab_name")
+        owner_name = request.form.get("owner_name")
+        email = request.form.get("email")
+        phone = request.form.get("phone")
+
+        city = request.form.get("city")
+        address = request.form.get("address")
+
+        license_number = request.form.get("license_number")
+
+        working_hours = request.form.get("working_hours")
+
+        latitude = request.form.get("latitude")
+        longitude = request.form.get("longitude")
+
+        services = request.form.get("services")
+
+        file = request.files.get("document")
+
+        doc_path = None
+        filename = None
+        if file:
+            upload_folder = app.config["UPLOAD_FOLDER"]
+
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+
+            filename = str(uuid.uuid4()) + "_" + secure_filename(file.filename)
+
+            file_path = os.path.join(upload_folder, filename)
+
+            file.save(file_path)
+
+        new_application = LabApplication(
+            lab_name=lab_name,
+            owner_name=owner_name,
+            email=email,
+            phone=phone,
+            city=city,
+            address=address,
+            license_number=license_number,
+            documents_path=filename,
+            services=services,
+            working_hours=working_hours,
+            latitude=latitude,
+            longitude=longitude
+        )
+
+        db.session.add(new_application)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Application submitted. Waiting for admin approval."
+        })
+
+    except Exception as e:
+
+        print(e)
+
+        return jsonify({
+            "success": False,
+            "message": "Failed to submit application"
+        }), 500
+    
+
+@app.route("/admin/lab-applications", methods=["GET"])
+def get_lab_applications():
+
+    current_user, error = get_admin_user()
+
+    if error:
+        return error
+
+    applications = LabApplication.query.filter_by(status="pending").all()
+
+    data = []
+
+    for app in applications:
+        data.append({
+            "id": app.id,
+            "lab_name": app.lab_name,
+            "owner_name": app.owner_name,
+            "email": app.email,
+            "city": app.city,
+            "license_number": app.license_number,
+            "document": app.documents_path
+        })
+
+    return jsonify(data)
+
+@app.route("/admin/approve-lab/<int:id>", methods=["POST"])
+def approve_lab(id):
+
+    current_user, error = get_admin_user()
+
+    if error:
+        return error
+
+    application = LabApplication.query.get(id)
+
+    if not application:
+        return jsonify({"error": "Application not found"}), 404
+
+    password = secrets.token_hex(4)
+
+    password_hash = generate_password_hash(password)
+
+    new_lab = Lab(
+        lab_name=application.lab_name,
+        owner_name=application.owner_name,
+        email=application.email,
+        phone=application.phone,
+        city=application.city,
+        address=application.address,
+        license_number=application.license_number,
+        services=application.services,
+        working_hours=application.working_hours,
+        latitude=application.latitude,
+        longitude=application.longitude,
+        password_hash=password_hash
+    )
+
+    db.session.add(new_lab)
+
+    application.status = "approved"
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": "Lab approved",
+        "lab_password": password
+    })
+
+@app.route("/admin/reject-lab/<int:id>", methods=["POST"])
+def reject_lab(id):
+
+    current_user, error = get_admin_user()
+
+    if error:
+        return error
+
+    application = db.session.get(LabApplication, id)
+
+    if not application:
+        return jsonify({"error": "Application not found"}), 404
+
+    application.status = "rejected"
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": "Lab rejected"
+    })
+
+@app.route("/labs", methods=["GET"])
+def get_labs():
+
+    labs = Lab.query.all()
+
+    data = []
+
+    for lab in labs:
+        data.append({
+            "id": lab.id,
+            "lab_name": lab.lab_name,
+            "city": lab.city,
+            "services": lab.services,
+            "latitude": lab.latitude,
+            "longitude": lab.longitude
+        })
+
+    return jsonify(data)
+
+
+@app.route("/labs/<int:id>", methods=["GET"])
+def get_lab_details(id):
+
+    lab = Lab.query.get(id)
+
+    if not lab:
+        return jsonify({"error": "Lab not found"}), 404
+
+    return jsonify({
+        "lab_name": lab.lab_name,
+        "owner_name": lab.owner_name,
+        "city": lab.city,
+        "address": lab.address,
+        "phone": lab.phone,
+        "services": lab.services,
+        "working_hours": lab.working_hours,
+        "latitude": lab.latitude,
+        "longitude": lab.longitude
+    })
+
+@app.route("/labs/search")
+def search_lab():
+
+    city = request.args.get("city")
+
+    labs = Lab.query.filter_by(city=city).all()
+
+    data = []
+
+    for lab in labs:
+        data.append({
+            "id": lab.id,
+            "lab_name": lab.lab_name,
+            "city": lab.city
+        })
+
+    return jsonify(data)
+
+@app.route("/lab/login", methods=["POST"])
+def lab_login():
+
+    data = request.json
+
+    email = data.get("email")
+    password = data.get("password")
+
+    lab = Lab.query.filter_by(email=email).first()
+
+    if not lab:
+        return jsonify({"error": "Invalid login"}), 401
+
+    if not check_password_hash(lab.password_hash, password):
+        return jsonify({"error": "Invalid login"}), 401
+
+    token = create_token(lab.id)
+
+    return jsonify({
+        "success": True,
+        "token": token,
+        "lab": {
+            "lab_name": lab.lab_name,
+            "city": lab.city
+        }
+    })
+
+@app.route("/lab/upload-report", methods=["POST"])
+def lab_upload_report():
+
+    try:
+
+        token = request.headers.get("Authorization")
+
+        if not token:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        token = token.split(" ")[1]
+
+        data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+
+        lab = Lab.query.get(data["user_id"])
+
+        if not lab:
+            return jsonify({"error": "Invalid lab"}), 401
+
+        patient_email = request.form.get("patient_email")
+
+        file = request.files.get("file")
+
+        if not file:
+            return jsonify({"error": "No file uploaded"}), 400
+
+        filename = secure_filename(file.filename)
+
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+        file.save(path)
+
+        extracted_text = extract_text_from_pdf(path)
+
+        if USE_AI:
+
+            response = co.chat(
+                model="c4ai-aya-expanse-32b",
+                message=build_medical_prompt(extracted_text[:6000]),
+                temperature=0.3
+            )
+
+            ai_output = response.text
+
+        else:
+
+            ai_output = extracted_text[:1500]
+
+        new_report = Report(
+            extracted_text=extracted_text,
+            pdf_path=path,
+            ai_summary=ai_output,
+            lab_id=lab.id,
+            patient_email=patient_email
+        )
+
+        db.session.add(new_report)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": "Report uploaded successfully",
+            "ai_summary": ai_output
+        })
+
+    except Exception as e:
+
+        print(e)
+
+        return jsonify({"error": "Upload failed"}), 500
+    
+@app.route("/lab/reports", methods=["GET"])
+def lab_reports():
+
+    token = request.headers.get("Authorization")
+
+    if not token:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    token = token.split(" ")[1]
+
+    data = jwt.decode(token, app.config["SECRET_KEY"], algorithms=["HS256"])
+
+    lab = Lab.query.get(data["user_id"])
+
+    reports = Report.query.filter_by(lab_id=lab.id).all()
+
+    data = []
+
+    for r in reports:
+
+        data.append({
+            "id": r.id,
+            "patient_email": r.patient_email,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M")
+        })
+
+    return jsonify(data)
+
+@app.route("/patient/reports")
+def patient_reports():
+
+    email = request.args.get("email")
+
+    reports = Report.query.filter_by(patient_email=email).all()
+
+    data = []
+
+    for r in reports:
+
+        data.append({
+            "id": r.id,
+            "ai_summary": r.ai_summary,
+            "created_at": r.created_at.strftime("%Y-%m-%d")
+        })
+
+    return jsonify(data)
 
 @app.route('/api/admin/users', methods=['GET'])
 def get_all_users():
@@ -418,8 +791,12 @@ def upload_report():
         if not file.filename.lower().endswith(".pdf"):
             return jsonify({"error": "Only PDF allowed"}), 400
 
-        path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        print(path)
+        # path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+        # print(path)
+        # file.save(path)
+
+        filename = secure_filename(file.filename)
+        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(path)
 
         extracted_text = extract_text_from_pdf(path)

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Lab Registration</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f9;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:10px;
+width:400px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+width:100%;
+padding:10px;
+background:#007bff;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Register Your Lab</h2>
+
+<input id="lab_name" placeholder="Lab Name">
+
+<input id="owner_name" placeholder="Owner Name">
+
+<input id="email" placeholder="Email">
+
+<input id="phone" placeholder="Phone">
+
+<input id="city" placeholder="City">
+
+<input id="address" placeholder="Address">
+
+<input id="license" placeholder="License Number">
+
+<input id="services" placeholder="Services (Blood Test, X-Ray...)">
+
+<input id="hours" placeholder="Working Hours">
+
+<input type="file" id="document">
+
+<button onclick="applyLab()">Submit Application</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+async function applyLab(){
+
+const formData = new FormData()
+
+formData.append("lab_name",document.getElementById("lab_name").value)
+formData.append("owner_name",document.getElementById("owner_name").value)
+formData.append("email",document.getElementById("email").value)
+formData.append("phone",document.getElementById("phone").value)
+formData.append("city",document.getElementById("city").value)
+formData.append("address",document.getElementById("address").value)
+formData.append("license_number",document.getElementById("license").value)
+formData.append("services",document.getElementById("services").value)
+formData.append("working_hours",document.getElementById("hours").value)
+
+const file=document.getElementById("document").files[0]
+
+if(file){
+formData.append("document",file)
+}
+
+const res=await fetch("/lab/apply",{
+method:"POST",
+body:formData
+})
+
+const data=await res.json()
+
+document.getElementById("msg").innerText=data.message
+
+}
+
+</script>
+
+</body>
+</html>
